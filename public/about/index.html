@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="/favicon.png">
+    <title>About vote-1-for-soni</title>
+    <style>
+      body {
+        font-family: 'Avenir', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -o-user-select: none;
+      }
+      h1 {
+        text-align:left;
+        display:inline;
+      }
+      p {
+        width:50%;
+        max-width:800px;
+        min-width:300px;
+      }
+      ul {
+        width:50%;
+        max-width:800px;
+        min-width:300px;
+      }
+      ul li{
+        margin-bottom:10px;
+      }
+      u.link{
+        color: blue;
+        cursor: pointer;
+      }
+      u.link:active{
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1> Vote 1 for Soni </h1>
+    <object align="right"><u class="link" id="goToBack">< Back</u></object>
+    <script>
+      const changeWindowLocationHref = function(){
+        window.location.href = "/";
+      };
+      var goToBackEl = document.getElementById("goToBack");
+      if (goToBackEl.addEventListener) {                    // For all major browsers, except IE 8 and earlier
+        goToBackEl.addEventListener("click", changeWindowLocationHref);
+      } else if (goToBackEl.attachEvent) {                  // For IE 8 and earlier versions
+        goToBackEl.attachEvent("onclick", changeWindowLocationHref);
+      }
+    </script>
+    <hr />
+    <p>
+      This project is licensed under the Apache License, Version 2.0 (the "License"); you may not use contents of this repository except in compliance with the License. A copy of the License is in the LICENSE file and may also be obtained at <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>.
+    </p>
+    <p>
+      Software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+    </p>
+    <h2> Softwares used:</h2>
+    <ul>
+      <li><a href="https://vuejs.org/">Vue.js</a>: Javascript framework to control web elements.</li>
+      <li><a href="https://www.npmjs.com/package/meeks-prf-js">Meeks-PRF-js</a>: Count votes for a Meek's method RCV / STV election contest using Javascript software. Reference algorithm described by the <a href="https://prfound.org/resources/reference/reference-meek-rule/"><i>Proportional Representation Foundation</i></a>.</li>
+      <li><a href="https://firebase.google.com/docs/reference">NodeJS Firebase api</a>: <i>Database As A Service</i> provided by Google for a minimal backend.</li>
+    </ul>
+  </body>
+</html>
