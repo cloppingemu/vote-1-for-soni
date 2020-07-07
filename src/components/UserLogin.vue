@@ -12,7 +12,7 @@
   <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
   <div id="firebaseui-auth-container"> </div>
   <p id="warning">{{warning}}</p>
-  <p id="footer">v0.32.0rc5</p>
+  <p id="footer" style="display: none;">v1.1</p>
 </div>
 </template>
 
@@ -37,8 +37,7 @@ export default {
     });
     firebase_auth_instance.onAuthStateChanged((user) => {
       if (user){
-        const validateUser = functions.httpsCallable("validateUser");
-        validateUser({});
+        functions.httpsCallable("validateUser")({});
         db.ref(`/users/${user.uid}`).once("value").then((snap) => {
           this.user_login_config.adminAuth = snap.val();
         }).then(() => {

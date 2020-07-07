@@ -50,10 +50,8 @@ export const firebase_auth_instance = firebase.auth();
 const Header = require("./components/Header.vue").default;
 const BodyUserLogin = require("./components/UserLogin.vue").default;
 const AddVote = require("./components/AddVote.vue").default;
-// const AddVote = () => import(/* webpackChunkName: "AddVote" */ "./components/AddVote.vue");
 const BodyVote = require("./components/Vote.vue").default;
-// const BodyVote = () => import(/* webpackChunkName: "BodyVote" */ "./components/Vote.vue");
-const BodyAdminHome = () => import(/* webpackChunkName: "AdminHome-Body" */ "./components/AdminHome.vue");
+const BodyAdminHome = () => import("./components/AdminHome.vue");
 
 export default {
   name: 'app',
