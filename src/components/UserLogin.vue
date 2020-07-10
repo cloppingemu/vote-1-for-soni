@@ -10,9 +10,8 @@
   <button @click="validateCodeword()" v-if="(!user_login_config.show_spinner) && (backConfig.accepting)">Enter with codeword</button>
   <div class="lds-spinner" v-if="user_login_config.show_spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div> <br />
   <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+  <p id="warning" style="padding: 0 0 20px 0;" v-if="warning.trim().length > 0">{{warning}}</p>
   <div id="firebaseui-auth-container"> </div>
-  <p id="warning">{{warning}}</p>
-  <p id="footer" style="display: none;">v1.1</p>
 </div>
 </template>
 
@@ -31,9 +30,11 @@ export default {
       this.backConfig = snap.val();
       this.$emit("configFetched", snap.val());
       this.user_login_config.show_spinner = false;
-      this.$nextTick(() => {
-        this.$refs.input_codeword.focus();
-      });
+      if (snap.val().accepting === true){
+        this.$nextTick(() => {
+          this.$refs.input_codeword.focus();
+        });
+      }
     });
     firebase_auth_instance.onAuthStateChanged((user) => {
       if (user){
@@ -75,7 +76,10 @@ export default {
         this.warning = "!! Bad codeword";
         this.user_login_config.show_spinner = false;
       } else{
-        fetch("/fetchCandidatesList", {
+        this.warning = " ";
+        fetch(
+          // "http://localhost:5000/vote-1-for-soni/us-central1/fetchCandidatesList", {
+          "/fetchCandidatesList", {
           method: "POST",
           body: JSON.stringify([entered_codeword])
         }).then((response) => {
@@ -89,7 +93,7 @@ export default {
               this.warning = data.errMsg;
               this.user_login_config.show_spinner = false;
               this.$nextTick(() => {
-              this.$refs.input_codeword.focus();
+                this.$refs.input_codeword.focus();
               });
             }
           }).catch(() => {

@@ -7,7 +7,7 @@
         <th colspan=4 style="text-align: center;">Actions</th>
     </tr>
     <tr v-for="rank in back_config.rankNumCandidates" v-bind:key="rank">
-      <td id="actions_vote" @click="tableTouch(rank)">
+      <td id="actions_vote" @click="tableTouch(rank)" style="padding-left:10pt;">
         {{rank}}
       </td>
       <td @click="tableTouch(rank)">
@@ -31,8 +31,9 @@
   </table>
   <button v-if="!show_spinner" @click="submitVote()">Submit vote</button>
   <div class="lds-spinner" v-if="show_spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-  <p id="warning"> {{warning}} </p>
-  <p id="footer">Entered with: {{back_config.codeword}}</p>
+  <p style="color: green;" v-if="warning_green !== ''"> {{warning_green}} </p>
+  <p style="color: red;" v-if="warning_red !== ''"> {{warning_red}} </p>
+  <p id="footer" style="text-align: left;">Entered with: {{back_config.codeword}}</p>
 </div>
 </template>
 
@@ -46,7 +47,8 @@ export default {
   mounted: function(){},
   data: function(){
     const payload = {
-      warning: "",
+      warning_red: "",
+      warning_green: "",
       show_spinner: false,
     }
     return payload
@@ -90,12 +92,14 @@ export default {
       return true;
     },
     submitVote: function(){
-      this.warning = "Submitting vote!!";
+      this.warning_green = ""
+      this.warning_red = "Submitting vote!!";
       this.show_spinner = true;
       let payload = Array(this.back_config.rankNumCandidates);
       let validBallot = true;
       if (this.vote_config.rankings[0] == "  "){
-        this.warning = "!! Need at least one vote";
+        this.warning_green = ""
+        this.warning_red = "!! Need at least one vote";
         validBallot = false;
         this.show_spinner = false;
         return;
@@ -103,14 +107,16 @@ export default {
       for (let ballotIndex=0; ballotIndex<this.back_config.rankNumCandidates; ballotIndex++){
         payload[ballotIndex] = this.vote_config.rankings[ballotIndex][0];
         if ((this.vote_config.rankings[ballotIndex] == "  ") && (ballotIndex < this.back_config.minRankCandidates)){
-          this.warning = "!! Need more vote";
+          this.warning_green = ""
+          this.warning_red = "!! Need more vote";
           validBallot = false;
           this.show_spinner = false;
           return;
         }
         if (ballotIndex != 0){
           if ((this.vote_config.rankings[ballotIndex] != "  ") && (this.vote_config.rankings[ballotIndex-1] == "  ")){
-            this.warning = "!! All blank votes must appear at the end"
+            this.warning_green = ""
+            this.warning_red = "!! All blank votes must appear at the end"
             validBallot = false;
             this.show_spinner = false;
             return;
@@ -119,19 +125,24 @@ export default {
       }
       if (validBallot){
         payload.unshift(this.back_config.codeword);
-        fetch("/registerBallot", {
+        fetch(
+          // "http://localhost:5000/cshc-elections/us-central1/registerBallot", {
+          "/registerBallot", {
           method: "POST",
           body: JSON.stringify(payload)
         }).then((response) => {
           response.text().then((data) => {
             if (data === "success"){
-              this.warning = "Vote submitted successfully!! Close tab or change location to leave safely.";
+              this.warning_green = "Vote submitted successfully!!";
+              this.warning_red = "Close tab or change location to leave safely.";
             } else{
-              this.warning = data;
+              this.warning_green = "";
+              this.warning_red = data;
             }
             this.show_spinner = false;
           }).catch(() => {
-            this.warning = "!! Network or system error";
+            this.warning_green = ""
+            this.warning_red = "!! Network or system error";
             this.show_spinner = false;
           });
         });
@@ -153,17 +164,17 @@ export default {
   border-collapse: collapse;
   border: 1px solid #ddd;
 }
-#table_vote td, #table_vote th {
-  border: 1px transparent;
-  padding: 8px;
+#table_vote td {
+  border: 2px transparent;
+  padding: 5px;
   text-align: left;
 }
 #table_vote tr:nth-child(odd){background-color: #fff;}
 #table_vote tr:nth-child(even){background-color: #f0f0f0;}
 #table_vote tr:hover {background-color: #ddd;}
 #table_vote th {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  border: 2px transparent;
+  padding: 12px 12px;
   text-align: left;
   background-color: #2eb82e;
   color: white;
@@ -172,16 +183,20 @@ export default {
   width: 25px;
 }
 button {
-  background-color: #4CAF50;
+  background-color: #2eb82e;
   color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
+  padding: 8px 16px;
+  margin: 12px 0;
   border: none;
-  cursor: pointer;
-  width: auto;
+  font-weight: bold;
 }
 button:hover {
-  opacity: 0.8;
+  opacity: 0.9;
+  box-shadow: 0 0 3pt #666;
+}
+button:active{
+  opacity: 1;
+  box-shadow: 0 0 1px #666;
 }
 img.linker{
   cursor: pointer;

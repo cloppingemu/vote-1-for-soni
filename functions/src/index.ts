@@ -7,6 +7,8 @@ admin.initializeApp({
 });
 const db = admin.database();
 
+const CORS_TARGET = `${serviceAccount.project_id}.web.app`;
+// const CORS_TARGET = `*`;
 
 export const registerUser = functions.auth.user().onCreate((user: any) => {
   return new Promise((resolve, reject) => {
@@ -81,7 +83,7 @@ export const fetchCandidatesList = functions.https.onRequest((req:any, res:any) 
     }));
     return;
   }
-  res.set("Access-Control-Allow-Origin", `${serviceAccount.project_id}.web.app`);
+  res.set("Access-Control-Allow-Origin", CORS_TARGET);
   res.set("cache-control", "no-store");
   const data = JSON.parse(req.body);
   if (data.length !== 1){
@@ -92,27 +94,34 @@ export const fetchCandidatesList = functions.https.onRequest((req:any, res:any) 
     return;
   }
   db.ref("/").once("value").then((snapshot: any) => {
-    if (Object.keys(snapshot.val().ballots).includes(data[0])){
-      const testLoc = snapshot.val().ballots[data[0]].test;
-      const canList = snapshot.val()[testLoc].candidates;
-      res.send({
-        message: "success",
-        people: canList
-      });
-      return;
+    if (snapshot.val().config.accepting === true){
+      if (Object.keys(snapshot.val().ballots).includes(data[0])){
+        const testLoc = snapshot.val().ballots[data[0]].test;
+        const canList = snapshot.val()[testLoc].candidates;
+        res.send(JSON.stringify({
+          message: "success",
+          people: canList
+        }));
+        return;
+      } else{
+        res.send(JSON.stringify({
+          message: "fail",
+          errMsg: "!! Bad codeword."
+        }));
+        return;
+      }
     } else{
-      res.send({
+      res.send(JSON.stringify({
         message: "fail",
-        errMsg: "!! Bad codeword."
-      });
-      return;
+        errMsg: "!! Not accepting responses."
+      }));
     }
   }).catch((err:any) => {
     console.log(`Failed to read data candidates list with codeword ${data[0]} due to ${err}.`)
-    res.send({
+    res.send(JSON.stringify({
       message: "fail",
       errMsg: "!! Internal error."
-    });
+    }));
     return;
   });
 });
@@ -120,13 +129,10 @@ export const fetchCandidatesList = functions.https.onRequest((req:any, res:any) 
 
 export const registerBallot = functions.https.onRequest((req:any, res:any) => {
   if (req.method !== "POST"){
-    res.send(JSON.stringify({
-      message: "fail",
-      errMsg: "!! Invalid method"
-    }));
+    res.send("!! Invalid method");
     return;
   }
-  res.set("Access-Control-Allow-Origin", `${serviceAccount.project_id}.web.app`);
+  res.set("Access-Control-Allow-Origin", CORS_TARGET);
   res.set("cache-control", "no-store");
   const data = JSON.parse(req.body);
   db.ref("/").once("value").then((snapshot:any) => {

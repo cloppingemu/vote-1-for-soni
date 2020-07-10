@@ -5,7 +5,7 @@
     <BodyVote @AddingCandidate="page_to_add_vote($event)" @DeletingVote="delete_vote_from_ballot($event)" @SwapRanks="swap_ranks_on_ballot($event)" :back_config="db_config" :vote_config="vote_config" v-if="current_page == 'vote'"></BodyVote>
     <BodyAdminHome v-if="current_page == 'admin'" @BaseConfigUpdated="config_fetched($event)" :admin_config="admin_config" @FirebaseDeauth="firebase_sign_out()"></BodyAdminHome>
     <AddVote @ReturnToVote="page_return_to_vote($event)" :candidates="db_config.candidates" v-if="current_page == 'add_vote'"></AddVote>
-    <!-- <p id="footer">v0.31.13rc3</p> -->
+    <p id="footer" style="text-align: right;">v0.31.14rc3</p>
   </div>
 </template>
 
@@ -51,7 +51,7 @@ const Header = require("./components/Header.vue").default;
 const BodyUserLogin = require("./components/UserLogin.vue").default;
 const AddVote = require("./components/AddVote.vue").default;
 const BodyVote = require("./components/Vote.vue").default;
-const BodyAdminHome = () => import("./components/AdminHome.vue");
+const BodyAdminHome = () => import(/* webpackChunkName: "Admin-Body" */"./components/AdminHome.vue");
 
 export default {
   name: 'app',
@@ -165,12 +165,11 @@ u.link:active{
   color: red;
 }
 #footer{
-  color:black;
-  position:fixed;;
-  bottom:5px;
-  width:98%;
-  margin: 0 1%;
-  text-align: left;
+  color: black;
+  position: fixed;;
+  bottom: 5px;
+  width: 90%;
+  margin: 0 3%;
 }
 .lds-spinner {
   color: official;
