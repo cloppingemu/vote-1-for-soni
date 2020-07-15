@@ -129,7 +129,7 @@ export default {
   margin: 20px auto;
   border: 1pt solid;
   padding: 20px 10px 15px 20px;
-  background-color: whitesmoke;
+  background-color: #f7f7f7;
 }
 #footer{
   color:black;
@@ -140,9 +140,9 @@ export default {
   text-align:left;
 }
 button {
-  background-color: #2eb82e;
-  color: white;
-  padding: 8px 16px;
+  background-color: #269926;
+  color: whitesmoke;
+  padding: 2px 10px;
   border: none;
   cursor: pointer;
   max-width: 220px;
@@ -150,7 +150,6 @@ button {
   height: auto;
   min-height: 40px;
   font-weight: bold;
-  box-shadow: 1px 1px 2px #999;
 }
 button:hover {
   opacity: 0.9;
@@ -168,7 +167,7 @@ input{
   border: none;
   outline: none;
   border-bottom: 2px solid olivedrab;
-  background-color: whitesmoke;
+  background-color: #f7f7f7;
 }
 input:focus{
   background-color: white;

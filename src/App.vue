@@ -5,7 +5,7 @@
     <BodyVote @AddingCandidate="page_to_add_vote($event)" @DeletingVote="delete_vote_from_ballot($event)" @SwapRanks="swap_ranks_on_ballot($event)" :back_config="db_config" :vote_config="vote_config" v-if="current_page == 'vote'"></BodyVote>
     <BodyAdminHome v-if="current_page == 'admin'" @BaseConfigUpdated="config_fetched($event)" :admin_config="admin_config" @FirebaseDeauth="firebase_sign_out()"></BodyAdminHome>
     <AddVote @ReturnToVote="page_return_to_vote($event)" :candidates="db_config.candidates" v-if="current_page == 'add_vote'"></AddVote>
-    <p id="footer" style="text-align: right;">v0.31.14rc3</p>
+    <p id="footer" style="text-align: right;">v0.32.0rc3</p>
   </div>
 </template>
 

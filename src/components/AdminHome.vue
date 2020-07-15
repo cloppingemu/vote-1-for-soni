@@ -68,7 +68,7 @@
     <ul id="list_of_codewords">
       <li v-for="(codeword, index) in Object.keys(all_config.ballots)" :key="index">
         <b>{{codeword}}</b>: &nbsp; <u class="link" @click="deleteVote(codeword)">Delete vote</u> &nbsp; <u class="link" @click="deleteCodeword(codeword)"> Delete codeword</u>
-        <span v-if="all_config.test_token != all_config.ballots[codeword].test" id="warning"><br />!! Invalid or missing challenge <u class="link" @click="fixMissingChallenge(codeword)">Fix</u></span>
+        <span v-if="all_config.test_token != all_config.ballots[codeword].test" id="warning"><br />!! Invalid or missing challenge. Ballot may have been forged. <u class="link" @click="fixMissingChallenge(codeword)">Fix</u></span>
         <br /><em>Last modified: {{all_config.ballots[codeword].lastTime}}</em>
         <ul v-if="all_config.ballots[codeword].vote != '  '">
           <li v-for="(voteCandidate, indx) in all_config.ballots[codeword].vote" :key="indx">
@@ -219,8 +219,8 @@ export default {
       }
       this.isLoading = true;
       let payloadCandidates = {};
-      payloadCandidates[Math.random().toString(36).substring(2, 10)+Math.random().toString(36).substring(2, 10)] = "place holder 1";
-      payloadCandidates[Math.random().toString(36).substring(2, 10)+Math.random().toString(36).substring(2, 10)] = "place holder 2";
+      payloadCandidates[this.generateUUID()] = "place holder 1";
+      payloadCandidates[this.generateUUID()] = "place holder 2";
       let p1 = db.ref(`/${this.all_config.test_token}/candidates`).set(payloadCandidates);
       let payloadVotes = {};
       for (let word in this.all_config.ballots){
@@ -264,12 +264,9 @@ export default {
     },
     fixMissingChallenge: function(codeword){
       this.isLoading = true;
-      const now = new Date();
       db.ref(`/ballots/${codeword}/`).update({
-        "lastTime": Date(now.getUTCFullYear(), now.getUTCMonth(),
-        now.getUTCDate(), now.getUTCHours(),
-        now.getUTCMinutes(), now.getUTCSeconds()),
-        "test": this.all_config.test_token,
+        lastTime: this.getDateTime(),
+        test: this.all_config.test_token,
       }).then(() => {
         this.get_all_config();
       }).catch(() => {
@@ -395,6 +392,12 @@ export default {
       dlAnchorElem.setAttribute("download", fileName);
       dlAnchorElem.click();
     },
+    generateUUID: function(){
+      // const uuidURL = URL.createObjectURL(new Blob);
+      // return uuidURL.slice(uuidURL.length-36,);
+      const rng = (l) => Math.random().toString(36).substring(2, 2+l);
+      return `${rng(8)}-${rng(4)}-${rng(4)}-${rng(4)}-${rng(6)}${rng(6)}`;
+    },
     showImportingFile: function(){
       this.importingFile = true;
       document.body.scrollTop = 0; // For Safari
@@ -419,7 +422,7 @@ export default {
             if (newConfig.candidates != null){
               updateObj[new_test_token] = {"candidates": {}};
               for (let num in newConfig.candidates){
-                candidatesList[newConfig.candidates[num]] = Math.random().toString(36).substring(2, 10)+Math.random().toString(36).substring(2, 10);
+                candidatesList[newConfig.candidates[num]] = this.generateUUID();
                 updateObj[new_test_token].candidates[candidatesList[newConfig.candidates[num]]] = newConfig.candidates[num];
               }
               updateObj[this.all_config.test_token] = null;
@@ -477,17 +480,11 @@ export default {
           return
         }
       }
-      const now = new Date();
-      const new_test_token = (Math.random().toString(36).substring(2, 10) +
-                              Math.random().toString(36).substring(2, 10) +
-                              Math.random().toString(36).substring(2, 10) +
-                              Math.random().toString(36).substring(2, 10));
+      const new_test_token = this.generateUUID();
       let updateObj = {
         ballots: {
           "placeholder":{
-            lastTime: Date(now.getUTCFullYear(), now.getUTCMonth(),
-                            now.getUTCDate(), now.getUTCHours(),
-                            now.getUTCMinutes(), now.getUTCSeconds()),
+            lastTime: this.getDateTime(),
             test: new_test_token,
             vote: "  "
           }
@@ -497,8 +494,8 @@ export default {
       updateObj[new_test_token] = {
         candidates: {}
       };
-      updateObj[new_test_token].candidates[Math.random().toString(36).substring(2, 10)+Math.random().toString(36).substring(2, 10)] = "Place Holder Candidate 1"
-      updateObj[new_test_token].candidates[Math.random().toString(36).substring(2, 10)+Math.random().toString(36).substring(2, 10)] = "Place Holder Candidate 2"
+      updateObj[new_test_token].candidates[this.generateUUID()] = "Place Holder Candidate 1"
+      updateObj[new_test_token].candidates[this.generateUUID()] = "Place Holder Candidate 2"
       db.ref("/").update(updateObj)
       if (independent){
         this.get_all_config();
@@ -682,7 +679,7 @@ export default {
         this.isLoading = false;
         return;
       }
-      var newKey = Math.random().toString(36).substring(2,8) + Math.random().toString(36).substring(2,8);
+      var newKey = this.generateUUID();
       this.all_config.candidates[newKey] = newName;
       this.$forceUpdate();
       db.ref(`/${this.all_config.test_token}/candidates/${newKey}`).set(newName).then(() => {
@@ -886,7 +883,7 @@ div.config_handle:active{
   box-shadow: 0px 0px 1px black;
 }
 div.config_elements{
-  background-color: whitesmoke;
+  background-color: #f7f7f7;
   max-height: 0px;
   overflow: hidden;
   transition: max-height 0.2s ease;
@@ -1027,7 +1024,7 @@ button.commitConfigs{
   border-radius: 5px;
 }
 button.commitConfigs:hover{
-  background-color: white;
+  background-color: beige;
   color: black;
   font-weight: bold;
   border: none;
@@ -1035,7 +1032,7 @@ button.commitConfigs:hover{
   transition: box-shadow 0.1s ease;
 }
 button.commitConfigs:active{
-  background-color: white;
+  background-color: beige;
   color: black;
   font-weight: bold;
   border: none;
@@ -1125,7 +1122,7 @@ br.bigBreak{
   top: 0;
   left: 0;
   margin: 0;
-  background: #ffffff80;
+  background: #ffffff40;
   overflow: scroll;
 }
 #outPopUpTop{
@@ -1136,7 +1133,7 @@ br.bigBreak{
   /* height: 300px; */
   margin: 15% auto;
   z-index: 15;
-  background: whitesmoke;
+  background: #f7f7f7;
   border: solid 1px black;
 }
 #outPopUpTop .closeX{
@@ -1144,7 +1141,7 @@ br.bigBreak{
   padding: 0.5% 1.7%;
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   color: #fff;
-  background-color: #2eb82e;
+  background-color: #008a00;
   font-weight: bold;
   cursor: pointer;
   font-size: larger;

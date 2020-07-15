@@ -7,8 +7,8 @@
         <th colspan=4 style="text-align: center;">Actions</th>
     </tr>
     <tr v-for="rank in back_config.rankNumCandidates" v-bind:key="rank">
-      <td id="actions_vote" @click="tableTouch(rank)" style="padding-left:10pt;">
-        {{rank}}
+      <td id="actions_vote" @click="tableTouch(rank)" style="padding: 10px 12pt;">
+        <span>{{rank}}</span>
       </td>
       <td @click="tableTouch(rank)">
         {{vote_config.rankings[rank-1][1]}}
@@ -176,19 +176,21 @@ export default {
   border: 2px transparent;
   padding: 12px 12px;
   text-align: left;
-  background-color: #2eb82e;
+  background-color: #269926;
   color: white;
 }
 #table_vote #actions_vote{
   width: 25px;
 }
 button {
-  background-color: #2eb82e;
+  background-color: #269926;
   color: white;
-  padding: 8px 16px;
+  padding: 12px 16px;
   margin: 12px 0;
   border: none;
   font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
 }
 button:hover {
   opacity: 0.9;
