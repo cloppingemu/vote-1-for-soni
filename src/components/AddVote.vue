@@ -39,15 +39,13 @@ export default {
   font-size: 20px;
   border: 1px solid green;
   color: white;
-  text-shadow: 1px 0 0.5px #000, 0 -1px 0.5px #000, 0 1px 0.5px #000, -1px 0 0.5px #000;
+  text-shadow: 1px 0 1px #000, 0 -1px 1px #000, 0 1px 1px #000, -1px 0 1px #000;
   font-weight: bold;
-  transition: border 0.1s ease-in-out;
 }
 .candidate:hover{
   margin: 1px auto;
-  border: 1px solid white;
-  text-shadow: 1px 0 1.5px #000, -1px 0 1.5px #000, 0 1px 1.5px #000, 0 -1px 1.5px #000;
-  transition: all 0.25s ease-in-out;
+  border: 1px solid #fff0;
+  transition: all 0.1s linear;
 }
 .cancel{
   max-width: 1000px;
@@ -62,10 +60,10 @@ export default {
   color:black;
   background-color: white;
   border: 2px solid red;
+  text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000;
 }
 .cancel:hover{
   background-color: beige;
-  text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000;
-  transition: all 0.1s ease-in-out;
+  transition: all 0.1s linear;
 }
 </style>

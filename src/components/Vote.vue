@@ -126,7 +126,7 @@ export default {
       if (validBallot){
         payload.unshift(this.back_config.codeword);
         fetch(
-          // "http://localhost:5000/cshc-elections/us-central1/registerBallot", {
+          // "http://localhost:5000/vote-1-for-soni/us-central1/registerBallot", {
           "/registerBallot", {
           method: "POST",
           body: JSON.stringify(payload)
@@ -154,6 +154,7 @@ export default {
 
 <style scoped>
 #top{
+  margin-top: 50pt;
   text-align: center;
 }
 #table_vote {

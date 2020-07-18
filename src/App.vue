@@ -5,20 +5,20 @@
     <BodyVote @AddingCandidate="page_to_add_vote($event)" @DeletingVote="delete_vote_from_ballot($event)" @SwapRanks="swap_ranks_on_ballot($event)" :back_config="db_config" :vote_config="vote_config" v-if="current_page == 'vote'"></BodyVote>
     <BodyAdminHome v-if="current_page == 'admin'" @BaseConfigUpdated="config_fetched($event)" :admin_config="admin_config" @FirebaseDeauth="firebase_sign_out()"></BodyAdminHome>
     <AddVote @ReturnToVote="page_return_to_vote($event)" :candidates="db_config.candidates" v-if="current_page == 'add_vote'"></AddVote>
-    <p id="footer" style="text-align: right;">v0.32.0rc3</p>
+    <p id="footer" style="text-align: right;">v0.33.0rc4</p>
   </div>
 </template>
 
 <script>
-const firebase = require("firebase/app");
-require("firebase/database");
+export const firebase = require("firebase/app");
+// require("firebase/database");
 require('firebase/functions');
 
 import {firebaseConfig} from "./firebaseConfig"
 
 firebase.initializeApp(firebaseConfig);
 export const functions = firebase.functions()
-export const db = firebase.database()
+// export const db = firebase.database()
 
 require("firebase/auth");
 const firebaseui = require("firebaseui");
@@ -62,10 +62,8 @@ export default {
     BodyAdminHome,
     AddVote
   },
-  created: function(){
-  },
-  mounted: function(){
-  },
+  // created: function(){},
+  // mounted: function(){},
   data: function(){
     return {
       head_config: {

@@ -27,24 +27,50 @@ export const registerUser = functions.auth.user().onCreate((user: any) => {
 
 
 export const validateUser = functions.https.onCall((data:any, context:any) => {
-  db.ref("/users").once("value").then((snapshot:any) => {
-    if (!Object.keys(snapshot.val()).includes(context.auth.token.user_id)){
-      // user is missing profile
-      const payload = {
-        admin: false,
-        displayName: context.auth.token.name,
-        email: context.auth.token.email
-      };
-      db.ref(`/users/${context.auth.token.user_id}`).set(payload).then(() => {
-        console.log(`Fixed invalid user ${context.auth.token.email}.`);
-      }).catch((err:any) => {
-        console.log(`Failed to fix invalid user ${context.auth.token.email} due to ${err}.`);
+  return new Promise((resolve, reject) => {
+    db.ref("/users").once("value").then((snapshot:any) => {
+      if (!Object.keys(snapshot.val()).includes(context.auth.token.user_id)){
+        // user is missing profile
+        resolve([false])
+        const payload = {
+          admin: false,
+          displayName: context.auth.token.name,
+          email: context.auth.token.email
+        };
+        db.ref(`/users/${context.auth.token.user_id}`).set(payload).then(() => {
+          console.log(`Fixed invalid user ${context.auth.token.email}.`);
+        }).catch((err:any) => {
+          console.log(`Failed to fix invalid user ${context.auth.token.email} due to ${err}.`);
+        });
+      } else{
+        resolve([snapshot.val()[context.auth.token.user_id].admin]);
+      }
+      admin.auth().getUserByEmail(serviceAccount.project_owner_email).then((userRecord:any) => {
+        db.ref(`/users/${userRecord.uid}/admin`).set(true);
       });
-    }
-    admin.auth().getUserByEmail(serviceAccount.project_owner_email).then((userRecord:any) => {
-      db.ref(`/users/${userRecord.uid}/admin`).set(true);
     });
   });
+});
+
+
+export const getConfig = functions.https.onRequest((req:any, res:any) => {
+  if (req.method !== "GET"){
+    res.send("fail");
+  } else{
+    res.set("Access-Control-Allow-Origin", CORS_TARGET);
+    res.set("cache-control", "no-store");
+    db.ref("/config").once("value").then((snap:any) => {
+      res.send(JSON.stringify(snap.val()));
+    }).catch(() => {
+      res.send(JSON.stringify({
+        accepting: false,
+        mainTitle: "Election Demo",
+        minRankCandidates: 4,
+        numWinners: 4,
+        rankNumCandidates: 5
+      }));
+    });
+  }
 });
 
 

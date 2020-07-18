@@ -19,7 +19,7 @@
       Election title: <br />
       <input :value="all_config.config.mainTitle" @keydown.enter="commitBaseConfigs()" ref="newTitle">
       <button class="commitConfigs" @click="runElection()">Run election</button> <br class="bigBreak" /> <br />
-      Number of candidates to rank: <br />
+      Maximum number of candidates to rank: <br />
       <input type="number" :value="all_config.config.rankNumCandidates" @keydown.enter="commitBaseConfigs()" ref="newNumCandidates"> <br />
       Minimum number of candidates to rank: <br />
       <input type="number" :value="all_config.config.minRankCandidates" @keydown.enter="commitBaseConfigs()" ref="newMinRank"> <br />
@@ -123,8 +123,8 @@
   <span class="closeX" @click="hideImportingFile()">&times;</span>
   <div>
     <h3>Select a file</h3>
-    Current election will be over-written. Always back up the current configurations for good measure. <br class="bigBreak" />
-    <input type="file" style="margin-left:20px" id="file"><br class="bigBreak" />
+    Current election will be over-written. Always back up the current configurations for good measure. <br />
+    <input type="file" style="margin-top: 24pt; margin-left: 24pt;" id="file">
     <span id="warning">{{warning}}</span>
   </div>
 </div>
@@ -151,7 +151,7 @@
       </div>
       <div style="text-align: center;">
         <button @click="downloadElectionResults()" style="float:none;" class="commitConfigs">Download Full Results</button>
-        <a id="downloadResultsAnchorElem" class="hidden"></a> 
+        <a id="downloadResultsAnchorElem" class="hidden"></a>
       </div>
     </div>
   </div>
@@ -161,7 +161,11 @@
 </template>
 
 <script>
-import {db} from "../App.vue";
+import {firebase} from "../App.vue";
+require("firebase/database");
+export const db = firebase.database()
+
+// import {db} from "../App.vue";
 import {functions} from "../App.vue";
 const Meeks = require("meeks-prf-js");
 
@@ -827,7 +831,7 @@ export default {
       const options = {};
       const progressCallback = null;
       const results = Meeks.tabulate(nbrSeatsToFill, candidates, ballots, maxRankingLevels, tieBreaker, excluded, protectedzz, options, progressCallback)
-      
+
       this.elResults = {
         nbrSeatsToFill: nbrSeatsToFill,
         maxRankingLevels: maxRankingLevels,
@@ -902,20 +906,26 @@ div.scaryButton{
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   color: white;
   font-weight: bold;
-  background-color: orangered;
+  background-color: darkred;
   margin: 40px auto;
   padding: 12px 12px;
   text-align: center;
   width: fit-content;
-  box-shadow: 0 0 2px red;
   cursor:default;
 }
 div.scaryButton:hover{
-  box-shadow: 0 0 10px darkred;
+  background-color: white;
+  border: 1px solid black;
+  color: black;
+  transform: translateX(-4px) translateY(-4px);
+  box-shadow: 4px 4px 0 darkred;
 }
 div.scaryButton:active{
-  box-shadow: 0 0 5px darkred;
-  background-color: tomato;
+  transform: translateX(-2px) translateY(-2px);
+  box-shadow: 2px 2px 0 darkred;
+  background-color: #ffdddd;
+  border: 1px solid black;
+  color: black;
 }
 
 input[type="number"]{
@@ -988,8 +998,8 @@ input:checked + .sliderSmall:before {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: 0.2s;
-  transition: 0.2s;
+  -webkit-transition: 0.15s;
+  transition: all 0.15s linear;
 }
 .slider:before {
   position: absolute;
@@ -1000,8 +1010,8 @@ input:checked + .sliderSmall:before {
   border-radius: 50%;
   bottom: 3px;
   background-color: white;
-  -webkit-transition: 0.2s;
-  transition: 0.2s;
+  -webkit-transition: 0.15s;
+  transition: all 0.15s linear;
 }
 input:checked + .slider {
   background-color: #1a881a;
@@ -1021,22 +1031,23 @@ button.commitConfigs{
   padding: 6px 24px;
   border: none;
   transition: color 0.05s ease;
-  border-radius: 5px;
+  border-radius: 5pt;
 }
 button.commitConfigs:hover{
   background-color: beige;
   color: black;
   font-weight: bold;
-  border: none;
-  box-shadow: 3px 3px black;
-  transition: box-shadow 0.1s ease;
+  border: 1px solid salmon;
+  transform: translateX(-4px) translateY(-4px);
+  box-shadow: 4px 4px black;
 }
 button.commitConfigs:active{
   background-color: beige;
   color: black;
   font-weight: bold;
-  border: none;
-  box-shadow: 1px 1px black;  
+  border: 1px solid salmon;
+  transform: translateX(-2px) translateY(-2px);
+  box-shadow: 2px 2px black;
 }
 
 br.bigBreak{
@@ -1048,7 +1059,7 @@ br.bigBreak{
   padding: 6px;
 }
 .formAction{
-  background-color:darkgoldenrod;
+  background-color: darkgoldenrod;
   text-align: center;
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   color: white;
@@ -1057,15 +1068,22 @@ br.bigBreak{
   margin: 6px auto;
   width: fit-content;
   text-align: center;
-  cursor:default;
-  box-shadow: 0 0 1px #7e5f11;
 }
 .formAction:hover{
-  box-shadow: 0 0 4px #7e5f11;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  margin: 4px auto;
+  transform: translateX(-4px) translateY(-4px);
+  box-shadow: 4px 4px 0 darkgoldenrod;
 }
 .formAction:active{
-  box-shadow: 0 0 2px #7e5f11;
-  background-color: goldenrod;
+  background-color: beige;
+  color: black;
+  border: 1px solid black;
+  margin: 4px auto;
+  transform: translateX(-2px) translateY(-2px);
+  box-shadow: 2px 2px 0 darkgoldenrod;
 }
 
 #list_of_codewords{

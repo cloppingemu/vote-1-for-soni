@@ -16,33 +16,37 @@
 </template>
 
 <script>
-import {db} from "../App.vue"
 import {functions} from "../App.vue"
 import {uiConfig} from "../App.vue";
 import {ui} from "../App.vue";
 import {firebase_auth_instance} from "../App.vue";
 
+
 export default {
   name: "BodyUserLogin",
   props: [],
   created: function(){
-    db.ref("/config").once("value").then((snap) => {
-      this.backConfig = snap.val();
-      this.$emit("configFetched", snap.val());
-      this.user_login_config.show_spinner = false;
-      if (snap.val().accepting === true){
-        this.$nextTick(() => {
-          this.$refs.input_codeword.focus();
-        });
-      }
+    fetch(
+      // "http://localhost:5000/vote-1-for-soni/us-central1/getConfig",
+      "/getConfig",
+      {method: "GET"}
+    ).then((response) => {
+      response.json().then((data) => {
+        this.backConfig = data;
+        this.$emit("configFetched", data);
+        this.user_login_config.show_spinner = false;
+        if (data.accepting === true){
+          this.$nextTick(() => {
+            this.$refs.input_codeword.focus();
+          });
+        }
+      });
     });
     firebase_auth_instance.onAuthStateChanged((user) => {
       if (user){
-        functions.httpsCallable("validateUser")({});
-        db.ref(`/users/${user.uid}`).once("value").then((snap) => {
-          this.user_login_config.adminAuth = snap.val();
-        }).then(() => {
-          this.$emit("UserInfoFetch", [user, true]);
+        functions.httpsCallable("validateUser")({}).then((ret) => {
+          this.user_login_config.adminAuth = ret.data[0];
+          this.$emit("UserInfoFetch", [user, ret.data[0]]);
         }).catch(() => {
           this.$emit("UserInfoFetch", [user, false]);
         });
@@ -51,7 +55,7 @@ export default {
       }
     });
   },
-  mounted: function(){},
+  // mounted: function(){},
   data: function(){
     return {
       user_login_config: {
@@ -130,14 +134,6 @@ export default {
   border: 1pt solid;
   padding: 20px 10px 15px 20px;
   background-color: #f7f7f7;
-}
-#footer{
-  color:black;
-  position: relative;
-  bottom:5px;
-  width:98%;
-  padding-top: 10%;
-  text-align:left;
 }
 button {
   background-color: #269926;
