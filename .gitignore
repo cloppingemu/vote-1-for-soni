@@ -66,6 +66,9 @@ dist/
 # dotenv environment variables file
 .env
 
+#
+report.html
+
 # keys
 src/firebaseConfig.js
 functions/src/keys.ts

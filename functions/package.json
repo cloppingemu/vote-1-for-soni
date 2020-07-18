@@ -16,12 +16,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "firebase-admin": "^8.13.0",
-    "firebase-functions": "^3.7.0"
+    "firebase-functions": "^3.8.0"
   },
   "devDependencies": {
     "firebase-functions-test": "^0.1.6",
-    "tslint": "^5.12.0",
-    "typescript": "^3.9.6"
+    "tslint": "^5.20.1",
+    "typescript": "^3.9.7"
   },
   "private": true
 }
