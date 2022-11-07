@@ -1,192 +1,109 @@
 <template>
-  <div id="app">
-    <router-view :env="env" @updateEnv="update_env($event)" @firebaseDeauth="fb_signout($event)"/>
-  </div>
+  <router-view/>
 </template>
 
 <script>
-export const firebase = require("firebase/app");
-require('firebase/functions');
-
-import {firebaseConfig} from "./firebaseConfig-vote-1-for-soni";
-
-firebase.initializeApp(firebaseConfig);
-export const functions = firebase.functions();
-
-const getConfig = functions.httpsCallable("getConfig");
+import {getConfig, validateUser, auth} from "@/firebaseInit";
+import {onAuthStateChanged} from "firebase/auth";
 
 
-require("firebase/auth");
-const firebaseui = require("firebaseui");
-export const uiConfig = {
-  // signInSuccessUrl: '<url-to-redirect-to-on-success>',
-  signInOptions: [
-  // Leave the lines as is for the providers you want to offer your users.
-    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-  // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-  // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-  // firebase.auth.GithubAuthProvider.PROVIDER_ID,
-  // firebase.auth.EmailAuthProvider.PROVIDER_ID,
-  // firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-  // firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
-  ],
-  // tosUrl and privacyPolicyUrl accept either url string or a callback function.
-  // Terms of service url/callback.
-  // tosUrl: '<your-tos-url>',
-  // Privacy policy url/callback.
-  // privacyPolicyUrl: function() {
-  //   window.location.assign('<your-privacy-policy-url>');
-  // }
-  signInSuccessUrl: ".",
-};
-// Initialize the FirebaseUI Widget using Firebase.
-export const ui = new firebaseui.auth.AuthUI(firebase.auth());
-export const firebase_auth_instance = firebase.auth();
-
-export default{
-  name: "app",
-  data: function(){
-    return {
-      env: {
-        user: {
-          user_placeholder: "",
-          user_uid: "",
-          user_is_admin: -1,
-        },
-        config: {
-          show_nav: false,
-          current_page: "login",
-          adding_vote: -1,
-
-          page_title: "STV Elections",
-          accepting: false,
-          minRankCandidates: 4,
-          numWinners: -404,
-          rankNumCandidates: 5,
-
-          show_login_spinner: true,
-          login_warning: " "
-        },
-        ballot: {
-          codeword: "",
-          candidates: {},
-          vote: []
-        }
-      }
+export default {
+  computed: {
+    env: function(){
+      return this.$store.state.env;
     }
   },
-  mounted: function(){
-    this.get_config();
-    firebase_auth_instance.onAuthStateChanged((user) => {
-      if (user){
-        this.env.config.show_nav = true;
-        this.env.user.user_placeholder = ` as ${user.email}`;
-        this.env.user.user_uid = user.uid;
-        this.env.user.user_is_admin = -1;
-        functions.httpsCallable("validateUser")({}).then((ret) => {
-          this.env.user.user_is_admin = ret.data[0] ? 1 : 0;
-        }).catch(() => {
-          this.env.user.user_is_admin = 0;
-          if (this.$router.currentRoute.path == "/admin"){
-            this.$router.push("/")
+  created: function() {
+    getConfig({}).then((res) => {
+      if (res.data.msg === "success"){
+        this.$store.dispatch("update_all", {
+          env: {
+            config: res.data.config,
+            show_spinner: false
+          }
+        }).then(() => {
+          if (this.env.current_page == "login" && res.data.config.accepting){
+            document.getElementById("input_codeword").focus()
           }
         });
-      } else{
-        this.env.config.show_nav = false;
-        this.env.user.user_is_admin = 0;
-        if (this.$router.currentRoute.path == "/admin"){
-          this.$router.push("/")
-        }
       }
     });
-  },
-  methods: {
-    recurse_update: function(initial, update){
-      for(var prop in update){
-        if(typeof initial[prop] === 'object' && typeof update[prop] === 'object'){
-          this.recurse_update(initial[prop], update[prop]);
-        } else{
-          initial[prop] = update[prop];
+    this.$store.watch(
+      (state) => [state.env.current_page, state.env.user.auth, state.env.user.user_is_admin],
+      ([page, auth, user_is_admin]) => {
+        if (page == "admin" && auth == 0) {
+          this.$router.push("/");
+          this.$store.dispatch("update_all", {env: {
+            warning: "!! Sign in to access admin panel"
+          }});
+        } else if (page == "admin" && auth == 1 && user_is_admin == 0) {
+          this.$router.push("/");
+          this.$store.dispatch("update_all", {env: {
+            warning: "!! User is not an admin"
+          }});
         }
-      }
-    },
-    update_env: function(update){
-      this.recurse_update(this.env, update);
-    },
-    fb_signout: function(){
-      firebase_auth_instance.signOut();
-      if (this.$router.currentRoute.path != "/"){
-        this.$router.push("/");
-      }
-      window.location.reload(true);
-    },
-    get_config: function(){
-      getConfig({}).then((res) => {
-        if (Object.keys(res.data[0]).includes("msg")){
-          this.env.config.show_login_spinner = false;
-          this.warning = res.data[0].msg
-        } else{
-          const update_object = {
-            config:{
-              accepting: res.data[0].accepting,
-              page_title: res.data[0].mainTitle,
-              minRankCandidates: res.data[0].minRankCandidates,
-              numWinners: res.data[0].numWinners,
-              rankNumCandidates: res.data[0].rankNumCandidates
-            }
-          };
-          this.recurse_update(this.env, update_object)
-          this.env.config.show_login_spinner = false;
-          this.$nextTick(() => {
-            if (this.env.config.accepting === true && this.$router.currentRoute.path == "/"){
-              document.getElementById("input_codeword").focus();
-            }
+      },
+    );
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.$store.dispatch("update_all", {env:
+          {user: {auth: 0}}
+        });
+      } else {
+        this.$store.dispatch("update_user", {
+          auth: 1,
+          user_placeholder: user.email,
+          user_uid: user.uid
+        });
+        validateUser({}).then((res) => {
+          this.$store.dispatch("update_user", {
+            user_is_admin: res.data.admin ? 1 : 0
           });
-        }
-      }).catch(() => {
-        this.env.config.show_login_spinner = false;
-        this.warning = "!! Network or system error";
-      });
-    }
-  }
+        });
+      }
+      this.$store.dispatch("update_all", {env: {
+        warning: ""
+      }});
+    });
+  },
 }
+
 </script>
 
 <style>
-#nav {
-  padding: 30px;
-}
-a {
-  font-weight: bold;
-  color: #42b983;
-}
-a:active {
-  color: red;
-}
-a.router-link-exact-active {
-  color: #2c3e50;
-}
-a.router-link-exact-active:active {
-  color: red;
-}
-
-u.link{
-  font-weight: bold;
-  color: #42b983;
-  cursor: pointer;
-}
-u.link:active{
-  color: red;
-}
-
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #32475c;
+}
+
+a {
+  font-weight: bold;
+  color: #0c8b32;
+}
+a.actionLink {
+  color: #0c8b32;
+}
+a.router-link-exact-active {
   color: #2c3e50;
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+#warning{
+  color: red;
+}
+.stealthLink{
+  cursor: pointer;
+}
+
+.seletable{
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  -o-user-select: text;
+  user-select: text;
+}
+.noselect{
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -194,15 +111,30 @@ u.link:active{
   user-select: none;
 }
 
-#warning{
-  color: red;
+.loader {
+  margin-right : 4px;
+  height       : 8px;
+  width        : 56px; /* (6 * <margin: 0px>) + (7 * <width: 8px>) */
 }
-#footer{
-  color: black;
-  position: fixed;;
-  bottom: 5px;
-  width: 90%;
-  margin: 0 3%;
+.loader-box {
+  display                   : inline-block;
+  height                    : 8px;
+  width                     : 8px;
+  margin-left               : 1px;
+  background-color          : #06f8;
+  animation                 : fadeOutIn 210ms cubic-bezier(1, 0, 0.707, 0) 840ms infinite alternate;
+}
+.loader-box:nth-child(1)  { animation-delay:  30ms; }
+.loader-box:nth-child(2)  { animation-delay:  60ms; }
+.loader-box:nth-child(3)  { animation-delay:  90ms; }
+.loader-box:nth-child(4)  { animation-delay: 120ms; }
+.loader-box:nth-child(5)  { animation-delay: 150ms; }
+.loader-box:nth-child(6)  { animation-delay: 180ms; }
+.loader-box:nth-child(7)  { animation-delay: 210ms; }
+.loader-box:nth-child(8)  { animation-delay: 240ms; }
+@keyframes fadeOutIn {
+  0%   { background-color : #06f2; }
+  100% { background-color : #06ff; }
 }
 
 .lds-grid {
@@ -708,7 +640,7 @@ u.link:active{
   border: 4px solid #000;
   opacity: 1;
   border-radius: 50%;
-  animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  animation: lds-ripple 1s linear infinite;
 }
 .lds-ripple div:nth-child(2) {
   animation-delay: -0.5s;

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "STV Elections",
+  "short_name": "STV Elections",
+  "start_url": "/",
+  "display": "minimal-ui",
+  "background_color": "#0000",
+  "description": "A readable Hacker News app.",
+  "icons": [{
+    "src": "favicon.svg",
+    "type": "image/svg"
+  }],
+  "lang": "English",
+  "theme_color": "#1e811e",
+  "orientation": "portrait",
+  "prefer_related_applications": false
+}

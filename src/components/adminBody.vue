@@ -2,145 +2,134 @@
 <div id="top">
 
 <div>
-<div style="text-align:right; min-height:80px;">
-  <img v-if="!this.isLoading" src="../assets/refresh.svg" style="width: 4%; height: auto;min-width: 40px; cursor: pointer;transform: translateY(20px);-webkit-transform: translateY(20px);-ms-transform: translateY(20px);" @click="get_all_config()">
-  <div v-if="this.isLoading" class="lcl-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div> <br />
-</div>
+  <div class="noselect" style="text-align:right; min-height:80px;">
+    <img v-if="!this.display.isLoading" @click="getDatabase(true)" alt="Reload" src="../assets/refresh.svg" style="width: 4%; height: auto;min-width: 40px; cursor: pointer;transform: translateY(20px);-webkit-transform: translateY(20px);-ms-transform: translateY(20px);" rel="preload">
+    <div v-if="this.display.isLoading" class="lcl-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div> <br />
+  </div>
 
-<div class="config_group">
-  <div class="config_handle" @click="show_config_content(0)">
-    General configurations <span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+  <div class="config_group noselect">
+    <div class="config_handle" @click="showConfigContent(0, true)">
+      General configurations <span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+    </div>
+    <div class="config_elements">
+      <p>
+        Currently {{database.config.accepting ? "" : "not"}} accepting responses
+        <label @click="toggleAccepting()" class="switch"> <input type="checkbox" :checked="database.config.accepting" disabled> <span class="slider"></span></label>
+        <br /><br class="bigBreak" />
+        Election title: <br />
+        <input v-model="database.config.mainTitle" @keydown.enter="commitBaseConfig()" ref="newTitle" @change="setConfigUnset(true)" @keydown="setConfigUnset(true)" @keyup="setConfigUnset(true)">
+        <button class="commitConfigs blackBG" @click="runElection()" :disabled="display.isLoading">Run election</button> <br class="bigBreak" /> <br />
+        Maximum number of candidates to rank: <br />
+        <input type="number" v-model="database.config.rankNumCandidates" @keydown.enter="commitBaseConfig()" class="configInput" ref="newNumCandidates" @change="setConfigUnset(true)" @keydown="setConfigUnset(true)" @keyup="setConfigUnset(true)"> <br />
+        Minimum number of candidates to rank: <br />
+        <input type="number" v-model="database.config.minRankCandidates" @keydown.enter="commitBaseConfig()" class="configInput" ref="newMinRank" @change="setConfigUnset(true)" @keydown="setConfigUnset(true)" @keyup="setConfigUnset(true)"> <br />
+        Number of winners: <br />
+        <input type="number" v-model="database.config.numWinners" @keydown.enter="commitBaseConfig()" ref="newNumWinners" @change="setConfigUnset(true)" @keydown="setConfigUnset(true)" @keyup="setConfigUnset(true)">
+        <button :class="'commitConfigs' + (display.configUnset ? ' configSetter' : '')" @click="commitBaseConfig()" :disabled="display.isLoading || !display.configUnset">Set</button>
+      </p>
+      <p id="warning">{{display.warning}}</p>
+    </div>
   </div>
-  <div class="config_elements">
-    <p>
-      Currently {{isAcceptingNo()}} accepting responses
-      <label @click="toggle_accepting()" class="switch"> <input type="checkbox" :checked="all_config.config.accepting == true" disabled> <span class="slider"></span></label>
-      <br /><br class="bigBreak" />
-      Election title: <br />
-      <input :value="all_config.config.mainTitle" @keydown.enter="commitBaseConfigs()" ref="newTitle">
-      <button class="commitConfigs" @click="runElection()">Run election</button> <br class="bigBreak" /> <br />
-      Maximum number of candidates to rank: <br />
-      <input type="number" :value="all_config.config.rankNumCandidates" @keydown.enter="commitBaseConfigs()" ref="newNumCandidates"> <br />
-      Minimum number of candidates to rank: <br />
-      <input type="number" :value="all_config.config.minRankCandidates" @keydown.enter="commitBaseConfigs()" ref="newMinRank"> <br />
-      Number of winners: <br />
-      <input type="number" :value="all_config.config.numWinners" @keydown.enter="commitBaseConfigs()" ref="newNumWinners">
-      <button class="commitConfigs" @click="commitBaseConfigs()">Set</button>
-    </p>
-    <p id="warning">{{warning}}</p>
-  </div>
-</div>
 
-<div class="config_group">
-  <div class="config_handle" @click="show_config_content(1)">
-    Candidates: {{Object.keys(all_config.candidates).length}}<span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+  <div class="config_group noselect">
+    <div class="config_handle" @click="showConfigContent(1, true)">
+      Candidates: {{Object.keys(database.candidates).length}}<span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+    </div>
+    <div class="config_elements">
+      <p>
+        <input placeholder="New candidate" @keydown.enter="addCandidate()" ref="newCandidateName"><button class="commitConfigs blackBG" @click="addCandidate()" :disabled="display.isLoading">Add</button>
+      </p>
+      <p>
+        <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllCandidates()" :disabled="display.isLoading">Delete all candidates</button>
+      </p><br />
+      <p id="warning">{{display.warning}}</p>
+      <ul id="list_of_candidadates">
+        <li v-for="key in sortedCandidateKeys(Object.keys(database.candidates))" :key="key">
+          <img src="../assets/delete.svg" @click="deleteCandidate(key)" class="linker" />
+          <img src="../assets/edit.svg" @click="editCandidate(key)" class="linker" />
+          <span class="seletable">{{database.candidates[key]}}</span>
+        </li>
+      </ul>
+    </div>
   </div>
-  <div class="config_elements">
-    <p>
-      <input placeholder="New candidate" @keydown.enter="addCandidate()" ref="newCandidateName"><button class="commitConfigs" @click="addCandidate()">Add</button>
-    </p>
-    <p>
-      <button class="commitConfigs" style="float:left; margin-right: 1%;" @click="deleteAllCandidates()">Delete all candidates</button>
-    </p><br />
-    <p id="warning">{{warning}}</p>
-    <ul id="list_of_candidadates">
-      <li v-for="key in sortedCandidateKeys(Object.keys(all_config.candidates))" :key="key">
-        <img src="../assets/delete.svg" @click="deleteCandidate(key)" class="linker" />
-        <img src="../assets/edit.svg" @click="editCandidate(key)" class="linker" />
-        <span class="seletable">{{all_config.candidates[key]}}</span>
-      </li>
-    </ul>
-  </div>
-</div>
 
-<div class="config_group">
-  <div class="config_handle" @click="show_config_content(2)">
-    Codewords: {{countFullVotes()}} / {{Object.keys(all_config.ballots).length}}<span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
-  </div>
-  <div class="config_elements">
-    <p>
-      <input placeholder="New codeword" ref="newCodeword" @keydown.enter="addNewCodeword()" style="margin-bottom: 15px;"><button @click="addNewCodeword()" class="commitConfigs">Add</button>
-    </p>
-    <p>
-      <button class="commitConfigs" style="float:left; margin-right: 1%;" @click="deleteAllVotes()">Delete all vote</button>
-      <button class="commitConfigs" style="float:left; margin-right: 1%;" @click="deleteAllBallots()">Delete all codewords</button>
-    </p><br />
-    <p id="warning">{{warning}}</p>
-    <ul id="list_of_codewords">
-      <li v-for="(codeword, index) in Object.keys(all_config.ballots)" :key="index">
-        <b class="seletable">{{codeword}}</b>: &nbsp; <u class="link" @click="deleteVote(codeword)">Delete vote</u> &nbsp; <u class="link" @click="deleteCodeword(codeword)"> Delete codeword</u>
-        <span v-if="all_config.test_token != all_config.ballots[codeword].test" id="warning"><br />!! Invalid or missing challenge. Ballot may have been forged. <u class="link" @click="fixMissingChallenge(codeword)">Fix</u></span>
-        <br /><em>Last modified: {{all_config.ballots[codeword].lastTime}}</em>
-        <ul v-if="all_config.ballots[codeword].vote != '  '">
-          <li v-for="(voteCandidate, indx) in all_config.ballots[codeword].vote" :key="indx">
-            <span v-if="voteCandidate != '  '">{{indx+1}}.&nbsp;{{voteCandidate[1]}}</span>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div class="config_group">
-  <div class="config_handle" @click="show_config_content(3)">
-    Users: {{Object.keys(all_config.users).length}}<span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
-  </div>
-  <div class="config_elements">
-    <p id="warning">{{warning}}</p>
-    <p>
-      <ul id="list_of_users">
-        <li v-for="(user, index) in all_config.users" :key="index">
-          <b class="seletable">{{user.displayName}}</b> <u class="link" @click="deleteUser(index)">Delete user</u>
-          <ul>
-            <li>E-mail: <span class="seletable">{{user.email}}</span> </li>
-            <li>Admin:
-              <label @click="toggleAdmin(index)" class="switchSmall"> <input type="checkbox" :checked="user.admin == true" :ref="index" disabled> <span class="sliderSmall"></span></label>
+  <div class="config_group noselect">
+    <div class="config_handle" @click="showConfigContent(2, true)">
+      Codewords: {{countFullVotes()}} / {{Object.keys(database.ballots).length}} <span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+    </div>
+    <div class="config_elements">
+      <p>
+        <input placeholder="New codeword" ref="newCodeword" @keydown.enter="addNewCodeword()" style="margin-bottom: 15px;"><button @click="addNewCodeword()" class="commitConfigs blackBG" :disabled="display.isLoading">Add</button>
+      </p>
+      <p>
+        <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllVotes()" :disabled="display.isLoading">Delete all votes</button>
+        <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllBallots()" :disabled="display.isLoading">Delete all codewords</button>
+      </p><br />
+      <p id="warning">{{display.warning}}</p>
+      <ul id="list_of_codewords">
+        <li v-for="codeword in Object.keys(database.ballots)" :key="codeword" class="seletable">
+          <b>{{codeword}} </b>:<span class="noselect"> &nbsp;
+          <a href="javascript:void(0)" class="CopyURL noselect" :data-clipboard-text="formHashURL(this.database.ballots[codeword].hash)">Copy URL</a> &nbsp;
+          <a class="actionLink" href="javascript:void(0)" @click="deleteVote(codeword)">Delete vote</a> &nbsp;
+          <a class="actionLink" href="javascript:void(0)" @click="deleteCodeword(codeword)">Delete codeword</a></span>
+          <br /><em>Last modified: {{database.ballots[codeword].lastTime}}</em>
+          <ul v-if="database.ballots[codeword].vote != '  '">
+            <li v-for="(voteCandidate, indx) in database.ballots[codeword].vote" :key="indx">
+              <span v-if="voteCandidate != '  '">{{indx+1}}.&nbsp;{{database.candidates[voteCandidate]}}</span>
             </li>
           </ul>
         </li>
       </ul>
-    </p>
-  </div>
-</div>
-
-<div class="formActionsHolder">
-  <div class="formAction" @click="exportConfig()">
-    Export configurations
-    <a id="downloadConfigAnchorElem" class="hidden"></a>
-  </div>
-
-  <div class="formAction" @click="showImportingFile()">
-    Import configurations
-  </div>
-</div>
-
-<div class="scaryButton" @click="deleteCurrentConfig()">
-  Create new form
-</div>
-</div>
-
-<div v-if="importingFile" id="outPopUpBottom">
-  <div id="outPopUpTop">
-    <span class="closeX" @click="hideImportingFile()">&times;</span>
-    <div>
-      <h3>Select a file</h3>
-      Current election will be over-written. Always back up the current configurations for good measure. <br />
-      <input type="file" style="margin-top: 24pt; margin-left: 24pt;" id="file">
-      <span id="warning">{{warning}}</span>
     </div>
   </div>
+
+  <div class="config_group noselect">
+    <div class="config_handle" @click="showConfigContent(3, true)">
+      Users: {{Object.keys(database.users).length}}<span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+    </div>
+    <div class="config_elements">
+      <p id="warning">{{display.warning}}</p>
+      <p>
+        <ul id="list_of_users">
+          <li v-for="(user, index) in database.users" :key="user">
+            <b class="seletable">{{user.displayName}}</b> &nbsp; <a href="javascript:void(0)" class="actionLink" @click="deleteUser(index)">Delete user</a>
+            <ul>
+              <li>E-mail: <span class="seletable">{{user.email}}</span> </li>
+              <li>Admin:
+                <label @click="toggleAdmin(index)" class="switchSmall"> <input type="checkbox" :checked="user.admin == true" :ref="index" disabled> <span class="sliderSmall"></span></label>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </p>
+    </div>
+  </div>
+
+  <div class="formActionsHolder noselect">
+    <div class="formAction" @click="exportConfig()">
+      Export Configuration
+      <a id="downloadConfigAnchorElem" class="hidden"></a>
+    </div>
+
+    <div class="formAction" @click="showImportingFile()">
+      Import Configuration
+    </div>
+  </div>
+
+  <div class="scaryButton noselect" @click="deleteCurrentConfig(true)">
+    Delete Configuration
+  </div>
 </div>
 
-
-<div v-if="presentingResults" id="outPopUpBottom">
+<div v-if="display.presentingResults" id="outPopUpBottom">
   <div id="outPopUpTop">
     <span class="closeX" @click="togglePresentingResults()">&times;</span>
     <div>
       <h3>Election Results</h3>
       <hr>
-      <p>Number of winners: {{all_config.config.numWinners}}</p>
-      <p>Minimum rankings: {{all_config.config.minRankCandidates}} </p>
-      <p>Maximum rankings: {{all_config.config.rankNumCandidates}}</p>
+      <p>Number of winners: {{database.config.numWinners}}</p>
+      <p>Minimum rankings: {{database.config.minRankCandidates}} </p>
+      <p>Maximum rankings: {{database.config.rankNumCandidates}}</p>
       <hr>
       Winners:
       <div style="margin-top: 10px; list-style-type: none;">
@@ -158,679 +147,195 @@
   </div>
 </div>
 
+<div v-if="display.importingFile" id="outPopUpBottom">
+  <div id="outPopUpTop">
+    <span class="closeX" @click="hideImportingFile()">&times;</span>
+    <div>
+      <h3>Select a file</h3>
+      Current election will be over-written. Always back up the current configurations for good measure. <br />
+      <input type="file" style="margin-top: 24px; margin-left: 24px;" id="file"><br /><br />
+      <span id="warning" >{{display.warning}}</span>
+    </div>
+  </div>
+</div>
+
 </div>
 </template>
 
-<script>
-import {firebase} from "../App.vue";
-require("firebase/database");
-export const db = firebase.database()
 
-import {functions} from "../App.vue";
+<script>
+import {app, deregisterUser} from "@/firebaseInit"
+import {getDatabase, set, update, get, ref, child} from "firebase/database";
 const Meeks = require("meeks-prf-js");
 
+const db = getDatabase(app);
+const dbRef = ref(db);
+
+import Clipboard from 'clipboard';
+const clippy = new Clipboard('.CopyURL');
+clippy.on("success", (m) => {
+  m.trigger.innerText = "Copied";
+  m.trigger.style.color = "#D00";
+  setTimeout(() => {
+    m.trigger.innerText = "Copy URL";
+    m.trigger.style.color = "#42b983";
+  }, 1500);
+});
+
+const DEFAULT_PANEL_COLOR = "#1e811e";
+const HOVER_PANEL_COLOR = "#1a1";
+
 export default {
-  name: "BodyAdminHome",
-  props:[
-    "env"
-  ],
-  mounted: function(){
-    this.get_all_config(false);
+  name: "adminBody",
+  created: function() {
+    this.getDatabase(true);
   },
-  data: function(){
-    const payload = {
-      isLoading: false,
-      all_config: {
+  data: function() {
+    return {
+      database: {
         config: {
-          accepting: -1,
+          accepting: true,
+          mainTitle: "STV Elections",
           minRankCandidates: -1,
-          rankNumCandidates: -1
+          numWinners: -1,
+          rankNumCandidates: -1,
         },
-        users:{},
-        ballots: {},
-        candidates: {}
+        users: { },
+        candidates: { },
+        ballots: { }
       },
-      importingFile: false,
-      presentingResults: false,
-      warning: "",
+      display: {
+        isLoading: true,
+        warning: "",
+        presentingResults: false,
+        importingFile: false,
+        configUnset: false,
+      },
       elResults: {
         nbrSeatsToFill: -1,
         maxRankingLevels: -1,
         minRankingLevels: -1,
         elected: [],
         statuses: {}
-      }
-    }
-    return payload;
+      },
+    };
   },
-  methods:{
-    sortedCandidateKeys: function(keys){
-      return keys.sort((a, b)=>{
-        if (this.all_config.candidates[a] < this.all_config.candidates[b]){
-          return -1;
-        }
-        if (this.all_config.candidates[a] > this.all_config.candidates[b]){
-          return 1;
-        }
-        return 0;
-      });
+  methods: {
+    setConfigUnset: function(v) {
+      this.display.configUnset = v;
     },
-    deleteAllCandidates: function(){
-      const r = confirm(`You are about to delete all candidates and ballots. Are you sure?`);
-      if (!r){
-        return;
-      }
-      this.isLoading = true;
-      let payloadCandidates = {};
-      payloadCandidates[this.generateUUID()] = "place holder 1";
-      payloadCandidates[this.generateUUID()] = "place holder 2";
-      let p1 = db.ref(`/${this.all_config.test_token}/candidates`).set(payloadCandidates);
-      let payloadVotes = {};
-      for (let word in this.all_config.ballots){
-        payloadVotes[word] = {
-          lastTime: this.getDateTime(),
-          vote: "  ",
-          test: this.all_config.test_token
-        };
-      }
-      let p2 = db.ref(`/ballots`).update(payloadVotes);
-      Promise.all([p1, p2]).then(() =>{
-        this.get_all_config();
-        this.isLoading = false;
-      }).catch(() => {
-        this.warning = "!! Error deleting all candidates."
-        this.get_all_config();
-        this.isLoading = false;
-      });
-    },
-    countFullVotes: function(){
-      let filled = 0;
-      for (let word in this.all_config.ballots){
-        filled += (this.all_config.ballots[word].vote !== "  ");
-      }
-      return filled;
-    },
-    hideImportingFile: function(){
-      this.importingFile = false;
-      document.body.style.overflow = "auto";
-      this.warning = "";
-    },
-    togglePresentingResults: function(){
-      this.presentingResults = !this.presentingResults;
-      document.body.scrollTop = 0; // For Safari
-      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-      if (this.presentingResults){
-        document.body.style.overflow = "hidden";
-      } else{
-        document.body.style.overflow = "auto";
-      }
-    },
-    fixMissingChallenge: function(codeword){
-      this.isLoading = true;
-      db.ref(`/ballots/${codeword}/`).update({
-        lastTime: this.getDateTime(),
-        test: this.all_config.test_token,
-      }).then(() => {
-        this.get_all_config();
-      }).catch(() => {
-        this.warning = "!! Error fixing challenge - Refresh page";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[2];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    deleteUser: function(userUid){
-      let r = confirm(`User ${this.all_config.users[userUid].email} will be deleted. Are you sure you want to continue?`);
-      if (!r){
-        return;
-      }
-      this.isLoading = true;
-      const deregisterUser = functions.httpsCallable('deregisterUser');
-      deregisterUser({
-        targetUid: userUid,
-      }).then((message) => {
-        if (message.data == "success"){
-          if (this.env.user.user_uid == userUid){
-            this.fb_signout();
-          } else{
-            this.get_all_config();
-          }
-        } else{
-          this.warning = message.data;
-          this.$nextTick(() => {
-            const display_content = document.getElementsByClassName('config_elements')[3];
-            display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-          });
-          this.isLoading = false;
-        }
-      }).catch(() => {
-        this.warning = "!! Error deleting user - Refresh the page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[3];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    fb_signout: function(){
-      this.$emit("firebaseDeauth");
-    },
-    show_config_content: function(groupNumber){
-      let config_handle = document.getElementsByClassName("config_handle")[groupNumber];
+
+    showConfigContent: function(groupNumber, clearWarning) {
       let display_content = document.getElementsByClassName('config_elements')[groupNumber];
       let indicator = document.getElementsByClassName("extd")[groupNumber];
-      if (display_content.style.maxHeight){
+      let config_handle = document.getElementsByClassName("config_handle")[groupNumber];
+      if (display_content.style.maxHeight) {
         display_content.style.maxHeight = null;
         indicator.innerHTML = "&plus;"
-        config_handle.style.backgroundColor = "#2eb82e";
-      } else{
+        config_handle.style.backgroundColor = DEFAULT_PANEL_COLOR;
+      } else {
         display_content.style.maxHeight = `${display_content.scrollHeight}px`;
         indicator.innerHTML = "&minus;"
-        config_handle.style.backgroundColor = "#1a881a";
+        config_handle.style.backgroundColor = HOVER_PANEL_COLOR;
       }
-      this.warning = "";
+      if (clearWarning) {
+        this.display.warning = "";
+      }
     },
-    get_all_config: function(adjustContentHeight=true){
-      this.isLoading = true;
-      db.ref("/").once("value").then((snapshot) => {
-        this.all_config.users = snapshot.val().users;
-        this.all_config.config = snapshot.val().config;
-        this.all_config.ballots = snapshot.val().ballots;
-
-        this.$emit("updateEnv", {config: {
-          page_title: this.all_config.config.mainTitle,
-          accepting: this.all_config.config.accepting,
-          minRankCandidates: this.all_config.config.minRankCandidates,
-          numWinners: this.all_config.config.numWinners,
-          rankNumCandidates: this.all_config.config.rankNumCandidates,
-        }});
-
-        let ks = Object.keys(snapshot.val());
-        for (let i=0; i < ks.length; i++){
-          if (!['users', 'config', 'ballots'].includes(ks[i])){
-            this.all_config.candidates = snapshot.val()[ks[i]].candidates;
-            this.all_config.test_token = ks[i];
-          }
+    refreshContentHeight: function(refreshContentIndex, clearWarning) {
+      this.$nextTick(() => {
+        for (let dispIndex in refreshContentIndex) {
+          this.showConfigContent(refreshContentIndex[dispIndex], clearWarning);
+          this.showConfigContent(refreshContentIndex[dispIndex], clearWarning);
         }
-        this.$forceUpdate();
-        if (adjustContentHeight){
-          this.$nextTick(() => {
-            for (let dispIndex in [0,1,2,3]){
-              this.show_config_content(dispIndex);
-              this.show_config_content(dispIndex);
-            }
-          });
-        }
-        this.isLoading = false;
       });
     },
-    toggle_accepting: function(){
-      this.isLoading = true;
-      db.ref("/config/accepting").set(!this.all_config.config.accepting);
-      this.get_all_config();
-    },
-    isAcceptingNo: function(){
-      if (this.all_config.config.accepting == false){
-        return "not";
-      }
-    },
-    exportConfig: function(){
-      let payload = {
-        candidates: [],
-        config: this.all_config.config,
-        ballots: {}
-      }
-      for (let key in this.all_config.ballots){
-        let ballot = Array();
-        if (this.all_config.ballots[key].vote == "  "){
-          ballot.push(" ")
-        } else{
-          for (let index in this.all_config.ballots[key].vote){
-            ballot.push(this.all_config.ballots[key].vote[index][1]);
-          }
+    updateDatabase: function(path, refreshContentIndex, clearWarning) {
+      get(child(dbRef, path)).then((snapshot) => {
+        var segments = path.substring(1).split('/');
+        var cursor = this.database;
+        var segment, i;
+        for (i = 0; i < segments.length - 1; ++i) {
+          segment = segments[i];
+          cursor = cursor[segment];
         }
-        payload.ballots[key] = ballot;
-      }
-      for (let key in this.all_config.candidates){
-        payload.candidates.push(this.all_config.candidates[key]);
-      }
-      const fileName = "election_config.json";
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload));
-      const dlAnchorElem = document.getElementById('downloadConfigAnchorElem');
-      dlAnchorElem.setAttribute("href", dataStr);
-      dlAnchorElem.setAttribute("download", fileName);
-      dlAnchorElem.click();
+        cursor[segments[i]] = snapshot.val();
+
+        if (refreshContentIndex.length) {
+          this.refreshContentHeight(refreshContentIndex, clearWarning);
+        }
+
+        if (path == "/config") {
+          this.$store.dispatch("update_config", snapshot.val());
+        }
+        this.display.isLoading = false;
+      });
     },
-    generateUUID: function(){
+    getDatabase: function(clearWarning) {
+      this.display.isLoading = true;
+      get(child(dbRef, "/")).then((snapshot) => {
+        this.database = snapshot.val();
+        this.$store.dispatch("update_config", this.database.config);
+        this.refreshContentHeight([0, 1, 2, 3], clearWarning);
+        this.display.isLoading = false;
+      });
+    },
+    generateUUID: function() {
       // const uuidURL = URL.createObjectURL(new Blob);
       // return uuidURL.slice(uuidURL.length-36,);
       const rng = (l) => Math.random().toString(36).substring(2, 2+l);
       return `${rng(8)}-${rng(4)}-${rng(4)}-${rng(4)}-${rng(6)}${rng(6)}`;
     },
-    showImportingFile: function(){
-      this.importingFile = true;
-      document.body.scrollTop = 0; // For Safari
-      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-      document.body.style.overflow = "hidden";
-      this.$nextTick(() => {
-        document.getElementById('file').addEventListener('change', (fileInput) => {
-          let r = confirm(`${fileInput.target.files[0].name} has been selected for new configuration. Current election will be over-written. Do you want to continue?`);
-          let reader = new FileReader();
-          reader.onload = (event) => {
-            try{
-              var newConfig = JSON.parse(event.target.result);
-            } catch{
-              this.warning = "!! Error parsing JSON file. Data has not yet been overwritten."
-              return
-            }
-
-            let updateObj = {};
-            let new_test_token = this.deleteCurrentConfig(false);
-            let candidatesList = {};
-
-            if (newConfig.candidates != null){
-              updateObj[new_test_token] = {"candidates": {}};
-              for (let num in newConfig.candidates){
-                candidatesList[newConfig.candidates[num]] = this.generateUUID();
-                updateObj[new_test_token].candidates[candidatesList[newConfig.candidates[num]]] = newConfig.candidates[num];
-              }
-              updateObj[this.all_config.test_token] = null;
-            }
-
-            if (newConfig.ballots != null){
-              updateObj["ballots"] = {};
-              for (let code in newConfig.ballots){
-                updateObj.ballots[code] = {};
-                if (newConfig.ballots[code][0] !=  " "){
-                  updateObj.ballots[code].vote = [];
-                  for (let vote in newConfig.ballots[code]){
-                    let newName = newConfig.ballots[code][vote];
-                    if (newName != " "){
-                      let newNameCode = candidatesList[newName];
-                      if (newNameCode == null){
-                        this.warning = "!! Error matching candidate names. Data was over-written."
-                        this.get_all_config();
-                        return
-                      }
-                      updateObj.ballots[code].vote.push([newNameCode, newName]);
-                    } else{
-                      updateObj.ballots[code].vote.push("  ");
-                    }
-                  }
-                } else{
-                  updateObj.ballots[code].vote = "  ";
-                }
-                updateObj.ballots[code].test = new_test_token;
-                updateObj.ballots[code].lastTime = this.getDateTime();
-              }
-            }
-
-            if (newConfig.config != null){
-              updateObj.config = newConfig.config;
-            }
-            db.ref("/").update(updateObj).then(() => {
-              this.get_all_config();
-            });
-            this.hideImportingFile();
-            // "this" refers to the vue component instance.
-          };
-          if (r){
-            reader.readAsText(fileInput.target.files[0]);
-          } else{
-            this.warning = "!! Action aborted";
-          }
-        });
-      });
-    },
-    deleteCurrentConfig: function(independent=true){
-      if (independent){
-        const r = confirm(`Current election will be over-written. Do you want to continue?`);
-        if (!r){
-          return
-        }
-      }
-      const new_test_token = this.generateUUID();
-      let updateObj = {
-        ballots: {
-          "placeholder":{
-            lastTime: this.getDateTime(),
-            test: new_test_token,
-            vote: "  "
-          }
-        },
-      };
-      updateObj[this.all_config.test_token] = null;
-      updateObj[new_test_token] = {
-        candidates: {}
-      };
-      updateObj[new_test_token].candidates[this.generateUUID()] = "Place Holder Candidate 1"
-      updateObj[new_test_token].candidates[this.generateUUID()] = "Place Holder Candidate 2"
-      db.ref("/").update(updateObj)
-      if (independent){
-        this.get_all_config();
-      } else{
-        return new_test_token;
-      }
-    },
-    commitBaseConfigs: function(){
-      this.isLoading = true;
-      const newTitle = this.$refs.newTitle.value.trim();
-      const newNumCandidates = this.$refs.newNumCandidates.value.trim();
-      const newMinRank = this.$refs.newMinRank.value.trim();
-      const newNumWinners = this.$refs.newNumWinners.value.trim();
-      db.ref("/config").update({
-        mainTitle: newTitle,
-        rankNumCandidates: parseInt(newNumCandidates),
-        minRankCandidates: parseInt(newMinRank),
-        numWinners: parseInt(newNumWinners)
-      }).then(() => {
-        this.get_all_config();
-        this.$emit("updateEnv", {config: {
-          page_title: newTitle,
-          rankNumCandidates: newNumCandidates,
-          numWinners: newNumWinners,
-          minRankCandidates: newNumCandidates
-        }});
-      }).catch(() => {
-        this.warning = "!! Error pushing general configurations - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[0];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    // deleteCandidate: function(key){
-    //   /*
-    //     Delete candidate and all votes containing the candidate.
-    //   */
-    //   if (Object.keys(this.all_config.candidates).length <= 1){
-    //     alert("!! Need at least one candidate in the elections at all times");
-    //     return;
-    //   }
-    //   const r = confirm(`You are about to delete candidate ${this.all_config.candidates[key].toUpperCase()}. All votes containing them will be deleted too. Are you sure you want to continue?`);
-    //   if (!r){
-    //     return;
-    //   }
-    //   this.isLoading = true;
-    //   for (let code in this.all_config.ballots){
-    //     if (this.all_config.ballots[code].vote != "  "){
-    //       for (let index in this.all_config.ballots[code].vote){
-    //         if (this.all_config.ballots[code].vote[index] != "  "){
-    //           if (this.all_config.ballots[code].vote[index][0] == key){
-    //             this.deleteVote(code, false);
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    //   db.ref(`/${this.all_config.test_token}/candidates/${key}`).set(null).then(()=>{
-    //     this.get_all_config();
-    //   }).catch(() => {
-    //     this.warning = "!! Error deleting candidate - Refresh page.";
-    //     this.$nextTick(() => {
-    //       const display_content = document.getElementsByClassName('config_elements')[1];
-    //       display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-    //     });
-    //     this.isLoading = false;
-    //   });
-    // },
-    deleteCandidate: function(key){
-      /*
-        Delete candidate and shift remaining candidates up.
-      */
-      if (Object.keys(this.all_config.candidates).length <= 1){
-        alert("!! Need at least one candidate in the elections at all times");
-        return;
-      }
-      const r = confirm(`You are about to delete candidate ${this.all_config.candidates[key].toUpperCase()}. All votes containing them will be deleted too. Are you sure you want to continue?`);
-      if (!r){
-        return;
-      }
-      this.isLoading = true;
-      let Parr = [];
-      for (let code in this.all_config.ballots){
-        if (this.all_config.ballots[code].vote != "  "){
-          let Ballot = this.all_config.ballots[code].vote;
-          for (let indx in Ballot){
-            if (this.all_config.ballots[code].vote[indx][0] == key){
-              Ballot.splice(indx, 1);
-              if (Ballot.length == 0){
-                Ballot = "  ";
-              }
-              Parr.push(db.ref(`/ballots/${code}/vote`).set(Ballot));
-            }
-          }
-        }
-      }
-      Parr.push(db.ref(`/${this.all_config.test_token}/candidates/${key}`).set(null));
-      Promise.all(Parr).then(()=>{
-        this.get_all_config();
-      }).catch(() => {
-        this.warning = "!! Error deleting candidate - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[1];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    editCandidate: function(key){
-      const newName = prompt(`Enter new name for candidate ${this.all_config.candidates[key]}.`).trim();
-      this.isLoading = true;
-      let Parr = [
-        db.ref(`/${this.all_config.test_token}/candidates/${key}`).set(newName)
-      ];
-      for (let code in this.all_config.ballots){
-        if (this.all_config.ballots[code].vote != "  "){
-          let Ballot = this.all_config.ballots[code].vote;
-          for (let indx in Ballot){
-            if (this.all_config.ballots[code].vote[indx][0] == key){
-              let payload = {
-                vote: this.all_config.ballots[code].vote,
-                lastTime: this.getDateTime(),
-                test: this.all_config.test_token
-              };
-              payload.vote[indx][1] = newName;
-              Parr.push(db.ref(`/ballots/${code}`).set(payload));
-            }
-          }
-        }
-      }
-      Promise.all(Parr).then(() => {
-        this.get_all_config();
-      })
-    },
-    deleteAllVotes: function(){
-      const r = confirm(`You are about to delete all votes for all codeword. Are you sure?`);
-      if (!r){
-        return;
-      }
-      this.isLoading = true;
-      let payload = {};
-      for (let word in this.all_config.ballots){
-        payload[word] = {
-          lastTime: this.getDateTime(),
-          vote: "  ",
-          test: this.all_config.test_token
-        };
-      }
-      db.ref(`/ballots`).update(payload).then(() =>{
-        this.get_all_config();
-        this.isLoading = false;
-      }).catch(() => {
-        this.warning = "!! Error deleting all candidates."
-        this.get_all_config();
-        this.isLoading = false;
-      });
-    },
-    deleteAllBallots: function(){
-      const r = confirm(`You are about to delete all vote for ballots. Are you sure?`);
-      if (!r){
-        return;
-      }
-      this.isLoading = true;
-      let payload = {
-        placeholder: {
-          lastTime: this.getDateTime(),
-          vote: "  ",
-          test: this.all_config.test_token
-        }
-      };
-      db.ref(`/ballots`).set(payload).then(() =>{
-        this.get_all_config();
-        this.isLoading = false;
-      }).catch(() => {
-        this.warning = "!! Error deleting all candidates."
-        this.get_all_config();
-        this.isLoading = false;
-      });
-    },
-    addCandidate: function(){
-      this.isLoading = true;
-      const newName = this.$refs.newCandidateName.value.trim();
-      if (newName.trim() == ""){
-        this.isLoading = false;
-        return;
-      }
-      var newKey = this.generateUUID();
-      this.all_config.candidates[newKey] = newName;
-      this.$forceUpdate();
-      db.ref(`/${this.all_config.test_token}/candidates/${newKey}`).set(newName).then(() => {
-        this.$refs.newCandidateName.value = "";
-        this.get_all_config();
-      }).catch(() => {
-        this.warning = "!! Error adding candidate - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[1];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-      this.$nextTick(() => {
-        const display_content = document.getElementsByClassName('config_elements')[1];
-        display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-      });
-    },
-    deleteCodeword: function(codewordKey){
-      if (Object.keys(this.all_config.ballots).length <= 1){
-        alert("!! Need at least one candidate in the elections at all times");
-        return;
-      }
-      const r = confirm(`You are about to delete the codeword ${codewordKey.toUpperCase()}. Are you sure?`);
-      if (!r){
-        this.isLoading = false;
-        return;
-      }
-      this.isLoading = true;
-      db.ref(`/ballots/${codewordKey}`).set(null).then(() => {
-        this.get_all_config();
-      }).catch(() => {
-        this.warning = "!! Error deleting codeword - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[2];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    deleteVote: function(codewordKey, independent=false){
-      if (independent){
-        const r = confirm(`You are about to delete the vote for codeword ${codewordKey}. Are you sure?`);
-        if (!r){
-          return;
-        }
-      }
-      this.isLoading = true;
-      db.ref(`/ballots/${codewordKey}`).update({
-        "vote": "  ",
-        "lastTime": this.getDateTime()
-      }).then(() => {
-        this.get_all_config();
-        this.isLoading = false;
-      }).catch(() => {
-        this.warning = "!! Error deleting vote - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[3];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
-      });
-    },
-    getDateTime: function(){
+    getDateTime: function() {
       return `${new Date().toLocaleString("en-AU", {timeZone: "Australia/Sydney"})} AEST`;
     },
-    addNewCodeword: function(){
-      const newCodeword = this.$refs.newCodeword;
-      if (newCodeword.value.trim() == "" || newCodeword.value.trim().includes(" ")){
-        this.warning = "!! Bad codeword";
+
+    commitBaseConfig: function() {
+      if (this.display.isLoading) {
         return;
       }
-      this.all_config.ballots[newCodeword.value.toLowerCase().trim()] = {
-        "lastTime": "Working",
-        "test": "Working",
-        "vote": "  "
+      this.display.isLoading = true;
+      const newConfig = {
+        mainTitle: this.database.config.mainTitle,
+        accepting: this.database.config.accepting,
+        minRankCandidates: parseInt(this.database.config.minRankCandidates),
+        numWinners: parseInt(this.database.config.numWinners),
+        rankNumCandidates: parseInt(this.database.config.rankNumCandidates),
       };
-      this.$forceUpdate();
-      db.ref(`/ballots/${newCodeword.value.toLowerCase().trim()}`).set({
-        "vote": "  ",
-        "lastTime": this.getDateTime(),
-        "test": this.all_config.test_token
-      }).then(() => {
-        this.get_all_config();
-        newCodeword.value = ""
+      const oldConfig = this.database.config;
+      this.database.config = newConfig;
+      update(ref(db, "/config"), newConfig).then(() => {
+        this.getDatabase(true);
+        this.setConfigUnset(false);
       }).catch(() => {
-        this.warning = "!! Error adding codeword - Refresh page";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[1];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
+        this.database.config = oldConfig;
+        this.display.warning = "!! Error pushing general configurations - Refresh page.";
+        this.getDatabase(false);
       });
     },
-    toggleAdmin: function(userIndex){
-      if  (this.all_config.users[userIndex].admin){
-        let numAdmins = 0;
-        for (let index in this.all_config.users){
-          if (this.all_config.users[index].admin){
-            numAdmins += 1;
-          }
-        }
-        if (numAdmins < 2){
-          alert("!! Need at least one admin");
-          this.$refs[userIndex][0].checked = true;
-          this.isLoading = false;
-          return;
-        }
+    toggleAccepting: function() {
+      if (this.display.isLoading) {
+        return;
       }
-      this.isLoading = true;
-      db.ref(`/users/${userIndex}/admin`).set(!this.all_config.users[userIndex].admin).then(() => {
-        this.get_all_config();
-      }).catch(() => {
-        this.warning = "!! Error toggling admin - Refresh page.";
-        this.$nextTick(() => {
-          const display_content = document.getElementsByClassName('config_elements')[3];
-          display_content.style.maxHeight = `${display_content.scrollHeight}px`;
-        });
-        this.isLoading = false;
+      this.display.isLoading = true;
+      set(ref(db, "/config/accepting"), !this.database.config.accepting).then(() => {
+        this.getDatabase(true);
       });
     },
-    runElection: function(){
-      const nbrSeatsToFill = parseInt(this.all_config.config.numWinners);
-      const maxRankingLevels = parseInt(this.all_config.config.rankNumCandidates);
+    runElection: function() {
+      const nbrSeatsToFill = parseInt(this.database.config.numWinners);
+      const maxRankingLevels = parseInt(this.database.config.rankNumCandidates);
       var candidates = "";
       var ballots = [];
-      for (let index in this.all_config.candidates){
-        candidates = candidates.concat(" ", index)
+      for (let candidateKey in this.database.candidates) {
+        candidates = `${candidates} ${candidateKey}`;
       }
-      for (let index in this.all_config.ballots){
+      for (let voteCandidateKey in this.database.ballots) {
         var rankings = "";
-        if (this.all_config.ballots[index].vote != "  "){
-          for (let rank in this.all_config.ballots[index].vote){
-            if (this.all_config.ballots[index].vote[rank] != "  "){
-              rankings = rankings.concat(" ", this.all_config.ballots[index].vote[rank][0]);
+        if (this.database.ballots[voteCandidateKey].vote != "  ") {
+          for (let rank in this.database.ballots[voteCandidateKey].vote) {
+            if (this.database.ballots[voteCandidateKey].vote[rank] != "  ") {
+              rankings = `${rankings} ${this.database.ballots[voteCandidateKey].vote[rank]}`;
             }
           }
         } else{
@@ -843,12 +348,12 @@ export default {
       const protectedzz = "";
       const options = {};
       const progressCallback = null;
-      const results = Meeks.tabulate(nbrSeatsToFill, candidates, ballots, maxRankingLevels, tieBreaker, excluded, protectedzz, options, progressCallback)
+      const results = Meeks.tabulate(nbrSeatsToFill, candidates, ballots, maxRankingLevels, tieBreaker, excluded, protectedzz, options, progressCallback);
 
       this.elResults = {
         nbrSeatsToFill: nbrSeatsToFill,
         maxRankingLevels: maxRankingLevels,
-        minRankingLevels: this.all_config.config.minRankCandidates,
+        minRankingLevels: this.database.config.minRankCandidates,
         elected: [],
         statuses: {}
       };
@@ -856,42 +361,508 @@ export default {
       const elected = Array.from(results.elected).sort((a, b) => {
         return results.statuses[b].votes._valueAsInteger - results.statuses[a].votes._valueAsInteger;
       });
-      for (let winner in elected){
-        this.elResults.elected.push(this.all_config.candidates[elected[winner]]);
+      for (let winner in elected) {
+        this.elResults.elected.push(this.database.candidates[elected[winner]]);
       }
       this.togglePresentingResults();
 
       let statuses = {};
-      for (let canIndex in results.statuses){
-        statuses[this.all_config.candidates[canIndex]] = results.statuses[canIndex].votes._valueAsInteger;
+      for (let canIndex in results.statuses) {
+        statuses[this.database.candidates[canIndex]] = results.statuses[canIndex].votes._valueAsInteger;
       }
       this.elResults.statuses = statuses;
-
     },
-    downloadElectionResults: function(){
+    togglePresentingResults: function() {
+      this.display.presentingResults = !this.display.presentingResults;
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+      if (this.display.presentingResults) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "auto";
+      }
+    },
+    downloadElectionResults: function() {
       const fileName = "results.json";
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.elResults));
       const dlAnchorElem = document.getElementById('downloadResultsAnchorElem');
       dlAnchorElem.setAttribute("href", dataStr);
       dlAnchorElem.setAttribute("download", fileName);
       dlAnchorElem.click();
-    }
-  }
+    },
+
+    sortedCandidateKeys: function(keys) {
+      return keys.sort((a, b) => {
+        if (this.database.candidates[a].toLowerCase() < this.database.candidates[b].toLowerCase()) {
+          return -1;
+        }
+        if (this.database.candidates[a].toLowerCase() > this.database.candidates[b].toLowerCase()) {
+          return 1;
+        }
+        return 0;
+      });
+    },
+    addCandidate: function() {
+      if (this.display.isLoading) {
+        return;
+      }
+      this.display.isLoading = true;
+      const newName = this.$refs.newCandidateName.value.trim();
+      if (newName.trim() == "") {
+        this.display.isLoading = false;
+        return;
+      }
+      const newKey = this.generateUUID();
+      // this.database.candidates[newKey] = newName;
+      // this.$forceUpdate();
+
+      set(ref(db, `/candidates/${newKey}`), newName).then(() => {
+        this.$refs.newCandidateName.value = "";
+        this.database.candidates[newKey] = newName;
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error adding candidate - Refresh page.";
+        this.getDatabase(false);
+      });
+    },
+    deleteCandidate: function(key) {
+      /*
+        Delete candidate and shift remaining candidates up.
+      */
+      if (this.display.isLoading) {
+        return;
+      }
+      if (Object.keys(this.database.candidates).length <= 1) {
+        alert("!! Need at least one candidate in the elections at all times");
+        return;
+      }
+      const r = confirm(`You are about to delete candidate ${this.database.candidates[key].toUpperCase()}. All votes containing them will be deleted too. Are you sure you want to continue?`);
+      if (!r) {
+        return;
+      }
+      this.isLoading = true;
+      let Parr = [];
+      for (let code in this.database.ballots) {
+        if (this.database.ballots[code].vote != "  ") {
+          let Ballot = this.database.ballots[code].vote;
+          for (let indx in Ballot) {
+            if (this.database.ballots[code].vote[indx] == key) {
+              Ballot.splice(indx, 1);
+              if (Ballot.length == 0) {
+                Ballot = "  ";
+              }
+              Parr.push(update(ref(db, `/ballots/${code}`), {vote: Ballot, lastTime: this.getDateTime()}));
+            }
+          }
+        }
+      }
+      Parr.push(set(ref(db, `/candidates/${key}`), null));
+      Promise.all(Parr).then(()=>{
+        this.getDatabase([1, 2], true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting candidate - Refresh page.";
+        this.getDatabase([1, 2], false);
+        this.isLoading = false;
+      });
+    },
+    editCandidate: function(key) {
+      if (this.display.isLoading) {
+        return;
+      }
+      let newName = prompt(`Enter new name for candidate ${this.database.candidates[key]}.`, this.database.candidates[key]);
+      if (newName == null) {
+        return;
+      } else if (newName.trim() == "") {
+        this.display.warning = "!! Invalid candidate name.";
+        this.getDatabase(false);
+        return;
+      }
+      newName = newName.trim();
+      this.display.isLoading = true;
+      set(ref(db, `/candidates/${key}`), newName).then(() => {
+        this.database.candidates[key] = newName;
+        this.getDatabase(false);
+      }).catch(() => {
+        this.display.warning = "!! Failed to delete candidate - Refresh page.";
+        this.getDatabase(false);
+      });
+    },
+    deleteAllCandidates: function() {
+      if (this.display.isLoading) {
+        return;
+      }
+      const r = confirm(`You are about to delete all candidates and ballots. Are you sure?`);
+      if (!r) {
+        return;
+      }
+      this.display.isLoading = true;
+      let payloadCandidates = {};
+      payloadCandidates[this.generateUUID()] = "place holder 1";
+      payloadCandidates[this.generateUUID()] = "place holder 2";
+      let pCandidates = set(ref(db, `/candidates`), payloadCandidates);
+      let payloadVotes = {};
+      for (let word in this.database.ballots) {
+        payloadVotes[word] = {
+          lastTime: this.getDateTime(),
+          vote: "  ",
+          hash: this.database.ballots[word].hash
+        };
+      }
+      let pBallot = set(ref(db, `/ballots`), payloadVotes);
+      Promise.all([pCandidates, pBallot]).then(() => {
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting all candidates."
+        this.getDatabase(false);
+      });
+    },
+
+    countFullVotes: function() {
+      let filled = 0;
+      for (let word in this.database.ballots) {
+        filled += (this.database.ballots[word].vote !== "  ");
+      }
+      return filled;
+    },
+    addNewCodeword: function() {
+      if (this.display.isLoading) {
+        return;
+      }
+      const newCodeword = this.$refs.newCodeword.value.toLowerCase().trim();
+      if (newCodeword == "" || newCodeword.includes(" ")) {
+        this.display.warning = "!! Bad codeword";
+        this.refreshContentHeight([2], false);
+        return;
+      } else if (Object.keys(this.database.ballots).includes(newCodeword)) {
+        this.display.warning = "!! Codeword already exists";
+        this.$refs.newCodeword.value = "";
+        this.refreshContentHeight([2], false);
+        return;
+      }
+      this.display.isLoading = true;
+      const payload = {
+        vote: "  ",
+        lastTime: this.getDateTime(),
+        hash: this.generateUUID(),
+      };
+      set(ref(db, `/ballots/${newCodeword}`), payload).then(() => {
+        this.database.ballots[newCodeword] = payload;
+        this.$refs.newCodeword.value = "";
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error adding codeword - Refresh page";
+        this.getDatabase(false);
+      });
+    },
+    deleteAllBallots: function() {
+      if (this.display.isLoading) {
+        return;
+      }
+      const r = confirm(`You are about to delete all vote for ballots. Are you sure?`);
+      if (!r) {
+        return;
+      }
+      this.display.isLoading = true;
+      let payload = {
+        placeholder: {
+          lastTime: this.getDateTime(),
+          vote: "  ",
+          hash: this.generateUUID()
+        }
+      };
+      set(ref(db, `/ballots`), payload).then(() => {
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting all candidates - Refresh page"
+        this.getDatabase(false);
+      });
+    },
+    deleteVote: function(codewordKey, independent=false) {
+      if (this.display.isLoading) {
+        return;
+      }
+      if (independent) {
+        const r = confirm(`You are about to delete the vote for codeword ${codewordKey}. Are you sure?`);
+        if (!r) {
+          return;
+        }
+      }
+      this.display.isLoading = true;
+      const payload = {
+        "vote": "  ",
+        "lastTime": this.getDateTime()
+      };
+      update(ref(db, `/ballots/${codewordKey}`), payload).then(() => {
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting vote - Refresh page.";
+        this.getDatabase(false);
+      });
+    },
+    deleteCodeword: function(codewordKey) {
+      if (this.display.isLoading) {
+        return;
+      }
+      if (Object.keys(this.database.ballots).length <= 1) {
+        alert("!! Need at least one candidate in the elections at all times");
+        return;
+      }
+      const r = confirm(`You are about to delete the codeword ${codewordKey.toUpperCase()}. Are you sure?`);
+      if (!r) {
+        this.isLoading = false;
+        return;
+      }
+      this.display.isLoading = true;
+      set(ref(db, `/ballots/${codewordKey}`), null).then(() => {
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting codeword - Refresh page";
+        this.getDatabase(false);
+      });
+    },
+    deleteAllVotes: function() {
+      if (this.display.isLoading) {
+        return;
+      }
+      const r = confirm(`You are about to delete all votes for all codeword. Are you sure?`);
+      if (!r) {
+        return;
+      }
+      this.display.isLoading = true;
+      let payload = {};
+      for (let word in this.database.ballots) {
+        payload[word] = {
+          lastTime: this.getDateTime(),
+          vote: "  ",
+          hash: this.database.ballots[word].hash,
+        };
+      }
+      set(ref(db, `/ballots`), payload).then(() => {
+        this.database.ballots = payload;
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error deleting all candidates - Refresh page"
+        this.getDatabase(false);
+      });
+    },
+    formHashURL: function(hash) {
+      return `${window.location.host}/vote?ballot=${hash}`
+    },
+
+    toggleAdmin: function(userIndex) {
+      if (this.display.isLoading) {
+        return;
+      }
+      if (this.database.users[userIndex].admin) {
+        let numAdmins = 0;
+        for (let index in this.database.users) {
+          if (this.database.users[index].admin) {
+            numAdmins += 1;
+          }
+        }
+        if (numAdmins < 2) {
+          alert("!! Need at least one admin");
+          this.$refs[userIndex][0].checked = true;
+          this.display.isLoading = false;
+          return;
+        }
+      }
+      this.display.isLoading = true;
+      set(ref(db, `/users/${userIndex}/admin`), !this.database.users[userIndex].admin).then(() => {
+        if (userIndex == this.$store.state.env.user.user_uid){
+          window.location.href = "/";
+        }
+        this.getDatabase(true);
+      }).catch(() => {
+        this.display.warning = "!! Error toggling admin - Refresh page.";
+        this.getDatabase(false);
+      });
+    },
+    deleteUser: function(userUid) {
+      if (this.display.isLoading) {
+          return;
+      }
+      let r = confirm(`User ${this.database.users[userUid].email} will be deleted. Are you sure you want to continue?`);
+      if (!r) {
+          return;
+      }
+      this.display.isLoading = true;
+      deregisterUser({
+        targetUid: userUid,
+      }).then((result) => {
+        const res = result.data;
+        if (res.msg == "success") {
+          if (this.$store.state.env.user.user_uid == userUid) {
+            window.location.href = "/";
+            setTimeout(() => {
+              window.location.reload();
+            }, 50);
+          } else {
+            this.getDatabase(true);
+          }
+        } else {
+          this.display.warning = res.msg;
+          this.getDatabase(false);
+        }
+      }).catch(() => {
+        this.display.warning = "!! Error deleting user - Refresh the page.";
+        this.getDatabase(false);
+      });
+    },
+
+    exportConfig: function() {
+      let payload = {
+        candidates: [],
+        config: this.database.config,
+        ballots: {}
+      };
+      for (let key in this.database.ballots) {
+        let ballot = Array();
+        if (this.database.ballots[key].vote == "  ") {
+          ballot.push(" ");
+        } else {
+          for (let index in this.database.ballots[key].vote) {
+            ballot.push(this.database.candidates[this.database.ballots[key].vote[index]]);
+          }
+        }
+        payload.ballots[key] = ballot;
+      }
+      for (let key in this.database.candidates) {
+        payload.candidates.push(this.database.candidates[key]);
+      }
+      const fileName = "election_config.json";
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload));
+      const dlAnchorElem = document.getElementById('downloadConfigAnchorElem');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", fileName);
+      dlAnchorElem.click();
+    },
+    deleteCurrentConfig: function(independent) {
+      return new Promise((resolve) => {
+        if (independent) {
+          const r = confirm(`Current election will be over-written. Do you want to continue?`);
+          if (!r) {
+            resolve();
+            return;
+          }
+        }
+        let updateObj = {ballots: {
+          "placeholder": {
+            lastTime: this.getDateTime(),
+            vote: "  ",
+            hash: this.generateUUID()
+          }
+        }};
+        this.display.isLoading = true;
+        updateObj.candidates = {};
+        updateObj.candidates[this.generateUUID()] = "Place Holder Candidate 1";
+        updateObj.candidates[this.generateUUID()] = "Place Holder Candidate 2";
+        update(ref(db, "/"), updateObj).then(() => {
+          if (independent) {
+            this.getDatabase(true);
+          }
+          resolve();
+        }).catch(() => {
+          this.display.warning = "!! Error overwriting configuration- Refresh the page.";
+          this.getDatabase(true);
+          resolve();
+        });
+      });
+    },
+    hideImportingFile: function() {
+      this.display.importingFile = false;
+      document.body.style.overflow = "auto";
+      this.display.warning = "";
+    },
+    showImportingFile: function() {
+      this.display.importingFile = true;
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+      document.body.style.overflow = "hidden";
+      this.$nextTick(() => {
+        document.getElementById('file').addEventListener('change', (fileInput) => {
+          let r = confirm(`${fileInput.target.files[0].name} has been selected for new configuration. Current election will be over-written. Do you want to continue?`);
+          let reader = new FileReader();
+          reader.onload = ((file) => {
+            try{
+              var newConfig = JSON.parse(file.target.result);
+            } catch{
+              this.display.warning = "!! Error parsing JSON file"
+              return
+            }
+
+            let updateObj = {};
+            let candidatesList = {};
+
+            if (newConfig.candidates != null) {
+              updateObj = {"candidates": {}};
+              for (let num in newConfig.candidates) {
+                candidatesList[newConfig.candidates[num]] = this.generateUUID();
+                updateObj.candidates[candidatesList[newConfig.candidates[num]]] = newConfig.candidates[num];
+              }
+            }
+
+            if (newConfig.ballots != null) {
+              updateObj["ballots"] = {};
+              for (let code in newConfig.ballots) {
+                updateObj.ballots[code] = {};
+                if (newConfig.ballots[code][0] !=  " ") {
+                  updateObj.ballots[code].vote = [];
+                  for (let vote in newConfig.ballots[code]) {
+                    let newName = newConfig.ballots[code][vote];
+                    if (newName != " ") {
+                      let newNameCode = candidatesList[newName];
+                      if (newNameCode == null) {
+                        this.display.warning = "!! Error finding candidate names from ballot in the candidate list";
+                        this.display.isLoading = true;
+                        this.getDatabase(false);
+                        return;
+                      }
+                      updateObj.ballots[code].vote.push(newNameCode);
+                    } else {
+                      updateObj.ballots[code].vote.push("  ");
+                    }
+                  }
+                } else {
+                  updateObj.ballots[code].vote = "  ";
+                }
+                updateObj.ballots[code].hash = this.generateUUID();
+                updateObj.ballots[code].lastTime = this.getDateTime();
+              }
+            }
+
+            if (newConfig.config != null) {
+              updateObj.config = newConfig.config;
+            }
+
+            this.display.isLoading = true;
+            this.deleteCurrentConfig(false).then(() => {
+              update(ref(db, "/"), updateObj).then(() => {
+                this.getDatabase(true);
+              }).catch(() => {
+                this.display.warning = "!! Failed to update database"
+              });
+            });
+            this.hideImportingFile();
+            // "this" refers to the vue component instance.
+          });
+          if (r) {
+            reader.readAsText(fileInput.target.files[0]);
+          } else {
+            this.display.warning = "!! Action aborted";
+          }
+        });
+      });
+    },
+
+  },
 }
 </script>
 
 
 <style scoped>
-.seletable{
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  -o-user-select: text;
-  user-select: text;
-}
-
 div.config_handle{
-  background-color: #2eb82e;
+  background-color: #1e811e;
   border: 1px solid whitesmoke;
   cursor: pointer;
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -921,6 +892,10 @@ div.config_elements br{
   max-width: 750px;
   width: 100%;
   margin: 65px auto;
+}
+
+input.configInput{
+  margin-bottom: 10px;
 }
 
 div.scaryButton{
@@ -1043,17 +1018,16 @@ input:checked + .slider:before {
   transform: translateX(25px);
 }
 
-button.commitConfigs{
+button.commitConfigs {
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   float: right;
-  background-color: black;
   color: white;
   font-weight: bold;
   padding: 6px 24px;
-  border: none;
+  border: 1px solid black;
   transition: color 0.05s ease;
 }
-button.commitConfigs:hover{
+button.commitConfigs:hover {
   background-color: white;
   color: black;
   font-weight: bold;
@@ -1061,14 +1035,36 @@ button.commitConfigs:hover{
   transform: translateX(-4px) translateY(-4px);
   box-shadow: 4px 4px black;
 }
-button.commitConfigs:active{
+button.commitConfigs:active {
   background-color: snow;
   color: black;
   font-weight: bold;
   border: 1px solid black;
   transform: translateX(-2px) translateY(-2px);
   box-shadow: 2px 2px black;
-  transition: all 0.05s;
+  transition: color 0.05s;
+}
+button.commitConfigs:disabled {
+  background-color: #C00;
+  color: white;
+  font-weight: bold;
+  border: 1px solid black;
+  transform: none;
+  box-shadow: none;
+  transition: color 0.05s;
+}
+button.configSetter:not(:hover) {
+  animation-name: configSetterAnimation;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+    animation-timing-function: steps(1, end);
+}
+@keyframes configSetterAnimation {
+  0%   {background-color:darkcyan;}
+  50% {background-color:darkblue;}
+}
+button.blackBG {
+  background-color: black;
 }
 
 br.bigBreak{

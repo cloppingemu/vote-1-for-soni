@@ -1,43 +1,40 @@
 {
-  "database": {
-    "rules": "database.rules.json"
-  },
   "functions": {
+    "source": "functions",
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
     ]
   },
+  "database": {
+    "rules": "database.rules.json"
+  },
   "hosting": {
     "public": "dist",
-    "headers": [ {
-      "source" : "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
-      "headers" : [ {
-        "key" : "Access-Control-Allow-Origin",
-        "value" : "*"
-      }, {
-        "key" : "Cache-Control",
-        "value" : "max-age=2592000"
-      } ]
-    }, {
-      "source" : "**/*.@(js|css)",
-      "headers" : [ {
-        "key" : "Cache-Control",
-        "value" : "max-age=604800"
-      } ]
-    }, {
-      "source" : "**/*.@(jpg|jpeg|gif|png|svg)",
-      "headers" : [ {
-        "key" : "Cache-Control",
-        "value" : "max-age=2592000"
-      } ]
-    }, {
-      "source" : "404.html",
-      "headers" : [ {
-        "key" : "Cache-Control",
-        "value" : "max-age=300"
-      } ]
-    } ],
+    "predeploy": [
+      "yarn build"
+    ],
+    "headers": [
+      {
+        "source": "/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source":
+          "**/*.@(jpg|jpeg|gif|png|svg|webp|js|css|eot|otf|ttf|ttc|woff|woff2|font.css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
+      }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",

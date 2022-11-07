@@ -1,35 +1,45 @@
 <template>
 <div id="top">
 	<button class="cancel" @click="back_to_vote()">&times;</button><br />
-	<button class="candidate" v-for="key in Object.keys(env.ballot.candidates).filter(key => env.ballot.candidates[key] !== null).sort(() => Math.random() - 0.5)" :key="key" @click="add_candidate(key)">{{env.ballot.candidates[key]}}</button>
+	<button class="candidate" v-for="key in shuffleCandidates()" :key="key" @click="add_candidate(key)">
+    {{env.ballot.candidates[key]}}
+  </button>
 </div>
 </template>
 
 <script>
 export default {
   name: "AddVote",
-  props: [
-    "env"
-  ],
+  computed: {
+    env: function() {
+      return this.$store.state.env;
+    }
+  },
   methods:{
-    add_candidate: function(key){
-      const payload = {
-        config: {adding_vote: -1},
-        ballot: {
-          vote: this.env.ballot.vote,
-          candidates: this.env.ballot.candidates
-        }
-      };
-      if (this.env.ballot.vote[this.env.config.adding_vote-1] !== "  "){
-        payload.ballot.candidates[this.env.ballot.vote[this.env.config.adding_vote-1][0]] = this.env.ballot.vote[this.env.config.adding_vote-1][1];
-      }
-      payload.ballot.vote[this.env.config.adding_vote-1] = [key, this.env.ballot.candidates[key]];
-      payload.ballot.candidates[key] = null;
-
-      this.$emit("updateEnv", payload);
+    shuffleCandidates: function() {
+      let candidatesKeys = Object.keys(this.env.ballot.candidates);
+      let candidates = candidatesKeys.filter((key) => {
+        return this.env.ballot.candidates[key] != -1;
+      });
+      candidates = candidates.sort(() => Math.random() - 0.5);
+      return candidates;
     },
-    back_to_vote: function(){
-      this.$emit("updateEnv", {config: {adding_vote: -1}});
+    add_candidate: function(key) {
+      const payload = {
+        addingVote: -1,
+        vote: this.env.ballot.vote,
+        candidates: {}
+      };
+      if (this.env.ballot.vote[this.env.ballot.addingVote-1] !== "  ") {
+        // if replacing vote, return vote to candidates pool
+        payload.candidates[this.env.ballot.vote[this.env.ballot.addingVote-1][0]] = this.env.ballot.vote[this.env.ballot.addingVote-1][1];
+      }
+      payload.vote[this.env.ballot.addingVote-1] = [key, this.env.ballot.candidates[key]];
+      payload.candidates[key] = -1;
+      this.$store.dispatch("update_ballot", payload);
+    },
+    back_to_vote: function() {
+      this.$store.dispatch("update_ballot", {addingVote: -1});
     }
   }
 }
@@ -40,10 +50,11 @@ export default {
 #top{
   padding-bottom: 10px;
 }
+
 .candidate{
   margin: 0 auto;
   max-width: 1000px;
-  width: 100%;
+  width: 75%;
   background-color: #269926;
   padding: 10px;
   display: block;
@@ -55,10 +66,13 @@ export default {
   font-weight: bold;
 }
 .candidate:hover{
-  margin: 1px auto;
-  border: 1px solid #fff0;
-  transition: all 0.1s linear;
+  width: 100%;
+  background-color: white;
+  color: #269926;
+  text-shadow: none;
+  transition: width 0.5s ease;
 }
+
 .cancel{
   max-width: 1000px;
   display: block;
@@ -75,7 +89,8 @@ export default {
   text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000;
 }
 .cancel:hover{
-  background-color: beige;
+  background-color: red;
+  color: white;
   transition: all 0.1s linear;
 }
 </style>

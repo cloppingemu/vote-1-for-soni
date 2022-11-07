@@ -1,35 +1,55 @@
 <template>
-<div class="404">
-  <Header :env="env"  @firebaseDeauth="fb_signout($event)" />
-  <ComponentNotFound :env="env"/>
-</div>
+  <div class="four04">
+    <pageHeader />
+    <loginBody :display="loginBodyDisplay" />
+  </div>
 </template>
 
 <script>
-import Header from "@/components/header.vue";
-import ComponentNotFound from "@/components/componentNotFound.vue";
+import pageHeader from "@/components/pageHeader.vue";
+import loginBody from "@/components/loginBody.vue";
+
 
 export default {
-  name: "ViewNotFound",
-
+  name: "AdminPage",
   components: {
-    Header,
-    ComponentNotFound
+    pageHeader,
+    loginBody,
   },
-
-  props: [
-    "env"
-  ],
-
-  mounted: function(){
-    this.$emit("updateEnv", {config: {current_page: "404"}})
+  data: function() {
+    return {
+      loginBodyDisplay: {
+        heading: "View Not Found",
+        waiting: "",
+      },
+    };
   },
+  created: function() {
+    this.$store.dispatch("update_all", {env: {
+      current_page: "four04"
+    }});
 
-  methods: {
-    fb_signout: function(event){
-      this.$emit("firebaseDeauth", event);
-    },
-  }
+    var message = "Redirecting in";
+    var timeout = 3;
+    var count = timeout;
 
+    this.loginBodyDisplay.waiting = `${message} ${timeout}...`
+    setTimeout(() => {
+      this.$router.push("/");
+    }, timeout*1000);
+
+    while (timeout > 0) {
+      setTimeout(() => {
+        count = count - 1;
+        this.loginBodyDisplay.waiting = `${message} ${count}...`;
+      }, timeout * 1000);
+      timeout = timeout - 1;
+    }
+  },
+  computed: {
+    env: function() {
+      return this.$store.state.env;
+    }
+  },
 }
 </script>

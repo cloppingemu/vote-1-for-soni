@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /about
+Disallow: /vote
+Disallow: /vote?ballot=*
+Disallow: /admin
