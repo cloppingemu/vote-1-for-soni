@@ -140,7 +140,7 @@
         </ol>
       </div>
       <div style="text-align: center;">
-        <button @click="downloadElectionResults()" style="float:none;" class="commitConfigs">Download Full Results</button>
+        <button @click="downloadElectionResults()" style="float:none;" class="commitConfigs blackBG">Download Full Results</button>
         <a id="downloadResultsAnchorElem" class="hidden"></a>
       </div>
     </div>

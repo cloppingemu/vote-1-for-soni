@@ -14,12 +14,12 @@ const firebaseConfig = {
 
 
 export const app = initializeApp(firebaseConfig);
-const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
+// const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
 
-initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider(keys.ReCaptchaV3Provider),
-  isTokenAutoRefreshEnabled: true
-});
+// initializeAppCheck(app, {
+//   provider: new ReCaptchaV3Provider(keys.ReCaptchaV3Provider),
+//   isTokenAutoRefreshEnabled: true
+// });
 
 
 import {getFunctions, httpsCallable} from 'firebase/functions';
