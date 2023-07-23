@@ -5,7 +5,7 @@
   <object align="right" class="noselect" v-if="['about', 'four04', 'admin', 'login'].includes(env.current_page)"><router-link to="/">Home</router-link> | <span v-if="env.user.user_is_admin == 1"> <router-link to="/admin">Admin</router-link> | </span> <router-link to="/about">About</router-link></object>
   <hr />
   <object align="right" style="text-align: right;" v-if="env.user.auth && env.user.user_placeholder != '' && env.current_page != 'vote'">
-    <span>{{env.user.user_placeholder}}</span> <br />
+    <span>{{env.user.user_placeholder}}</span><br />
     <span class="noselect" v-if="env.user.user_is_admin == 0"><a href="javascript:void(0)" @click="deleteMe()">{{delete_message}}</a></span>&nbsp;
     <span class="loader noselect" v-if="env.user.user_is_admin === -1"><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span><span class="loader-box"></span></span>
     <span class="noselect"><a href="." @click="signOutApp" ref="signout-lnk">{{deauth_message}}</a></span>

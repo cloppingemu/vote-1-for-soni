@@ -6,7 +6,7 @@
   </div>
   <p>{{display.waiting}}</p>
   <button class="greenButton" @click="validateCodeword()" v-if="!env.show_spinner && env.config.accepting && env.current_page == 'login'">
-    Enter with Codeword
+    Enter
   </button>
   <div class="lds-grid" v-if="(env.show_spinner || env.current_page != 'login') && loader == 0"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
   <div class="lds-facebook" v-if="(env.show_spinner || env.current_page != 'login') && loader == 1"><div></div><div></div><div></div></div>

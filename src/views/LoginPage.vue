@@ -27,9 +27,9 @@ export default {
         waiting = "";
       } else if (!this.env.config.accepting) {
         heading = "";
-        waiting = "Responses are not currently being accepted";
+        waiting = "Ballots are not currently being accepted";
       } else {
-        heading = "Enter with Codeword"
+        heading = "Enter With Key"
         waiting = "";
       }
       return {

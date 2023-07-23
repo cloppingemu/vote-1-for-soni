@@ -55,15 +55,15 @@
 
   <div class="config_group noselect">
     <div class="config_handle" @click="showConfigContent(2, true)">
-      Codewords: {{countFullVotes()}} / {{Object.keys(database.ballots).length}} <span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
+      Ballots: {{countFullVotes()}} / {{Object.keys(database.ballots).length}} <span style="float:right; font-size:larger;" class="extd">&plus;</span><br />
     </div>
     <div class="config_elements">
       <p>
-        <input placeholder="New codeword" ref="newCodeword" @keydown.enter="addNewCodeword()" style="margin-bottom: 15px;"><button @click="addNewCodeword()" class="commitConfigs blackBG" :disabled="display.isLoading">Add</button>
+        <input placeholder="New ballot name" ref="newCodeword" @keydown.enter="addNewCodeword()" style="margin-bottom: 15px;"><button @click="addNewCodeword()" class="commitConfigs blackBG" :disabled="display.isLoading">Add</button>
       </p>
       <p>
         <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllVotes()" :disabled="display.isLoading">Delete all votes</button>
-        <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllBallots()" :disabled="display.isLoading">Delete all codewords</button>
+        <button class="commitConfigs blackBG" style="float:left; margin-right: 1%;" @click="deleteAllBallots()" :disabled="display.isLoading">Delete all ballots</button>
       </p><br />
       <p id="warning">{{display.warning}}</p>
       <ul id="list_of_codewords">
@@ -71,7 +71,7 @@
           <b>{{codeword}} </b>:<span class="noselect"> &nbsp;
           <a href="javascript:void(0)" class="CopyURL noselect" :data-clipboard-text="formHashURL(this.database.ballots[codeword].hash)">Copy URL</a> &nbsp;
           <a class="actionLink" href="javascript:void(0)" @click="deleteVote(codeword)">Delete vote</a> &nbsp;
-          <a class="actionLink" href="javascript:void(0)" @click="deleteCodeword(codeword)">Delete codeword</a></span>
+          <a class="actionLink" href="javascript:void(0)" @click="deleteCodeword(codeword)">Delete ballot</a></span>
           <br /><em>Last modified: {{database.ballots[codeword].lastTime}}</em>
           <ul v-if="database.ballots[codeword].vote != '  '">
             <li v-for="(voteCandidate, indx) in database.ballots[codeword].vote" :key="indx">
@@ -530,11 +530,11 @@ export default {
       }
       const newCodeword = this.$refs.newCodeword.value.toLowerCase().trim();
       if (newCodeword == "" || newCodeword.includes(" ")) {
-        this.display.warning = "!! Bad codeword";
+        this.display.warning = "!! Bad ballot";
         this.refreshContentHeight([2], false);
         return;
       } else if (Object.keys(this.database.ballots).includes(newCodeword)) {
-        this.display.warning = "!! Codeword already exists";
+        this.display.warning = "!! Ballot already exists";
         this.$refs.newCodeword.value = "";
         this.refreshContentHeight([2], false);
         return;
@@ -550,7 +550,7 @@ export default {
         this.$refs.newCodeword.value = "";
         this.getDatabase(true);
       }).catch(() => {
-        this.display.warning = "!! Error adding codeword - Refresh page";
+        this.display.warning = "!! Error adding ballot - Refresh page";
         this.getDatabase(false);
       });
     },
@@ -582,7 +582,7 @@ export default {
         return;
       }
       if (independent) {
-        const r = confirm(`You are about to delete the vote for codeword ${codewordKey}. Are you sure?`);
+        const r = confirm(`You are about to delete the vote for ${codewordKey}. Are you sure?`);
         if (!r) {
           return;
         }
@@ -607,7 +607,7 @@ export default {
         alert("!! Need at least one candidate in the elections at all times");
         return;
       }
-      const r = confirm(`You are about to delete the codeword ${codewordKey.toUpperCase()}. Are you sure?`);
+      const r = confirm(`You are about to delete the ${codewordKey.toUpperCase()}. Are you sure?`);
       if (!r) {
         this.isLoading = false;
         return;
@@ -616,7 +616,7 @@ export default {
       set(ref(db, `/ballots/${codewordKey}`), null).then(() => {
         this.getDatabase(true);
       }).catch(() => {
-        this.display.warning = "!! Error deleting codeword - Refresh page";
+        this.display.warning = "!! Error deleting ballot - Refresh page";
         this.getDatabase(false);
       });
     },
@@ -624,7 +624,7 @@ export default {
       if (this.display.isLoading) {
         return;
       }
-      const r = confirm(`You are about to delete all votes for all codeword. Are you sure?`);
+      const r = confirm(`You are about to delete all votes for all ballots. Are you sure?`);
       if (!r) {
         return;
       }
