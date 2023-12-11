@@ -2,7 +2,7 @@
 <div id="top" class="noselect">
   <h2>{{display.heading}}</h2>
   <div v-if="(!env.show_spinner) && (env.config.accepting) && env.current_page == 'login'">
-    <input placeholder="Enter a codeword" @keydown.enter="validateCodeword()" id="input_codeword" ref="input_codeword"> <br />
+    <input placeholder="Enter a key" @keydown.enter="validateCodeword()" id="input_codeword" ref="input_codeword"> <br />
   </div>
   <p>{{display.waiting}}</p>
   <button class="greenButton" @click="validateCodeword()" v-if="!env.show_spinner && env.config.accepting && env.current_page == 'login'">
